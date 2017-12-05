@@ -19,6 +19,84 @@ double F_responseTime()
     return responseTime/1000.0;
 }
 
+// test: none
+QImage *F_seperation(QImage *image, F_Channel channel)
+{
+    responseTime = (double)clock();
+    QImage *newImage = new QImage(image->size(), QImage::Format_ARGB32);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int index;
+
+    switch (channel) {
+        case F_R:
+            for (int i=0; i<newImage->height(); i++) {
+                for (int j=0; j<newImage->width(); j++) {
+                    index = i*newImage->width()+j;
+                    newBits[index] = qRed(bits[index]);
+                }
+            }
+            break;
+        case F_G:
+            for (int i=0; i<newImage->height(); i++) {
+                for (int j=0; j<newImage->width(); j++) {
+                    index = i*newImage->width()+j;
+                    newBits[index] = qGreen(bits[index]);
+                }
+            }
+            break;
+        case F_B:
+            for (int i=0; i<newImage->height(); i++) {
+                for (int j=0; j<newImage->width(); j++) {
+                    index = i*newImage->width()+j;
+                    newBits[index] = qBlue(bits[index]);
+                }
+            }
+            break;
+    }
+
+    responseTime = (double)clock()-responseTime;
+    return newImage;
+}
+
+// test: none
+F_HSI F_RGB2HSI(QRgb rgb)
+{
+    // is rgb scaled to 1?
+    float hue = F_HSI.h, saturation = F_HSI.s, intensity = F_HSI.i;
+    float r, g, b;
+
+    float pi = 3.1415926;
+    float otz = 2*pi / 3;
+    if (hue>=0&&hue<=otz)
+    {
+        r = intensity*(1+(saturation*cos(hue))/(cos(pi/3.0-hue)));
+        b = intensity*(1-saturation);
+        g = 3*intensity - (b+r);
+    }
+    else if (hue>=otz && h<2*otz)
+    {
+        r = intensity*(1-saturation);
+        g = intensity*(1+(saturation*cos(hue-otz))/(cos(pi-hue)));
+        b = 3*intensity-(r+g);
+    }
+    else
+    {
+        g = intensity*(1-saturation);
+        b = intensity*(1+(s*cos(hue-otz*2))/(cos(5*pi/6-h)));
+        r = 3*i-(g+b);
+    }
+}
+
+// test: none
+QRgb F_HSI2RGB(F_HSI hsi)
+{
+    float pi = 3.1415926;
+    float tmp = sqrt((r));
+    // todo
+}
+
+// 彩色->灰度
 QImage *F_decolor(QImage *image)
 {
     responseTime = (double)clock();
