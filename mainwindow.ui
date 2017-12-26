@@ -23,7 +23,7 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QLabel" name="label">
+   <widget class="QLabel" name="whitebg">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -89,7 +89,7 @@ border-color: rgb(0, 0, 0);</string>
     </property>
    </widget>
    <zorder>bg_color</zorder>
-   <zorder>label</zorder>
+   <zorder>whitebg</zorder>
    <zorder>responseTimeText</zorder>
    <zorder>responseTime</zorder>
   </widget>
@@ -124,19 +124,62 @@ border-color: rgb(0, 0, 0);</string>
    </widget>
    <widget class="QMenu" name="menuFilter">
     <property name="enabled">
-     <bool>false</bool>
+     <bool>true</bool>
     </property>
     <property name="title">
      <string>滤镜</string>
     </property>
-    <addaction name="actionDecoloration"/>
+    <widget class="QMenu" name="menuColorImageProcess">
+     <property name="title">
+      <string>彩色图像处理</string>
+     </property>
+     <addaction name="actionChannelSeperation"/>
+     <addaction name="actionDecolor"/>
+     <addaction name="actionadjustHSI"/>
+     <addaction name="actionadjustGradation"/>
+    </widget>
+    <widget class="QMenu" name="menuAdjustContrast">
+     <property name="title">
+      <string>对比度调节</string>
+     </property>
+     <addaction name="actionEqualizeHistogram"/>
+    </widget>
+    <widget class="QMenu" name="menuSmoothFilter">
+     <property name="title">
+      <string>平滑滤波器</string>
+     </property>
+     <addaction name="actionBlur"/>
+     <addaction name="actionSharpen"/>
+    </widget>
+    <widget class="QMenu" name="menuOperation">
+     <property name="geometry">
+      <rect>
+       <x>590</x>
+       <y>224</y>
+       <width>137</width>
+       <height>102</height>
+      </rect>
+     </property>
+     <property name="title">
+      <string>代数几何操作</string>
+     </property>
+     <addaction name="actionAdd"/>
+     <addaction name="actionResize"/>
+    </widget>
+    <widget class="QMenu" name="menuMorphological">
+     <property name="title">
+      <string>形态学操作</string>
+     </property>
+     <addaction name="actionErosion"/>
+     <addaction name="actionDilation"/>
+    </widget>
     <addaction name="actionBinarization"/>
     <addaction name="separator"/>
-    <addaction name="actionblur"/>
-    <addaction name="actionsharpen"/>
-    <addaction name="separator"/>
-    <addaction name="actiondilation"/>
-    <addaction name="actionerosion"/>
+    <addaction name="menuColorImageProcess"/>
+    <addaction name="menuAdjustContrast"/>
+    <addaction name="menuSmoothFilter"/>
+    <addaction name="menuOperation"/>
+    <addaction name="menuMorphological"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -207,24 +250,23 @@ border-color: rgb(0, 0, 0);</string>
     <string>重做</string>
    </property>
   </action>
-  <action name="actionDecoloration">
+  <action name="actionDecolor">
+   <property name="checkable">
+    <bool>false</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>去色</string>
+   </property>
+   <property name="visible">
+    <bool>true</bool>
    </property>
   </action>
   <action name="actionAbout">
    <property name="text">
     <string>关于</string>
-   </property>
-  </action>
-  <action name="actionScaleUp">
-   <property name="text">
-    <string>放大</string>
-   </property>
-  </action>
-  <action name="actionScaleDown">
-   <property name="text">
-    <string>缩小</string>
    </property>
   </action>
   <action name="actionRecover">
@@ -237,24 +279,66 @@ border-color: rgb(0, 0, 0);</string>
     <string>二值化</string>
    </property>
   </action>
-  <action name="actionblur">
+  <action name="actionBlur">
    <property name="text">
     <string>高斯模糊</string>
    </property>
   </action>
-  <action name="actionsharpen">
+  <action name="actionSharpen">
    <property name="text">
     <string>锐化</string>
    </property>
   </action>
-  <action name="actiondilation">
+  <action name="actionDilation">
    <property name="text">
     <string>膨胀</string>
    </property>
   </action>
-  <action name="actionerosion">
+  <action name="actionErosion">
    <property name="text">
     <string>腐蚀</string>
+   </property>
+  </action>
+  <action name="actionChannelSeperation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>通道分离</string>
+   </property>
+  </action>
+  <action name="actionadjustHSI">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>HSI调节</string>
+   </property>
+  </action>
+  <action name="actionadjustGradation">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>色阶调整</string>
+   </property>
+  </action>
+  <action name="actionEqualizeHistogram">
+   <property name="text">
+    <string>直方图均衡化</string>
+   </property>
+  </action>
+  <action name="actionAdd">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>加操作</string>
+   </property>
+  </action>
+  <action name="actionResize">
+   <property name="text">
+    <string>缩放</string>
    </property>
   </action>
  </widget>

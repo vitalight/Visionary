@@ -1,10 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "filter.h"
+
 #include <QFileDialog>
 #include <QPixmap>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -12,11 +14,16 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     imageType = V_NORMAL;
-    qlabel = new QLabel(ui->label);
+    qlabel = new QLabel(ui->whitebg);
     originalImage = NULL;
     setWindowFlags(windowFlags()
                    &~Qt::WindowMaximizeButtonHint);    // 禁止最大化按钮
     setFixedSize(this->width(),this->height());                     // 禁止拖动窗口大小
+
+#ifndef __RELEASE__
+    on_actionOpen_triggered();
+    on_actionResizeLinear_triggered();
+#endif
 }
 
 MainWindow::~MainWindow()
@@ -32,6 +39,11 @@ void MainWindow::showResponseTime()
 
 void MainWindow::showImage(QImage *image)
 {
+//    if (image->width() != currentImage->width() ||
+//            image->height() != currentImage->height()) {
+//        qlabel->resize(image->width(), image->height());
+//    }
+
     if (currentImage != originalImage)
         free(currentImage);
     currentImage = image;
@@ -47,14 +59,14 @@ QImage MainWindow::autoscale()
 void MainWindow::on_actionOpen_triggered()
 {
     // open file
-
+#ifdef __RELEASE__
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("打开图片"),
                                                     "F:\\PersonalThings\\Artirea\\Pictures\\素材",
                                                     "Images (*.png *.bmp *.jpg *.jpeg)");
-
-    //QString fileName = "F:\\PersonalThings\\Artirea\\Pictures\\素材\\test.png";
-
+#else
+    QString fileName = "F:\\PersonalThings\\Artirea\\Pictures\\素材\\test.png";
+#endif
     if (fileName == "" || fileName == NULL) {
         return;
     }
@@ -105,7 +117,7 @@ void MainWindow::on_actionAbout_triggered()
                        "Visionary是一个强大的图像处理软件。");
 }
 
-void MainWindow::on_actionDecoloration_triggered()
+void MainWindow::on_actionDecolor_triggered()
 {
     if (imageType == V_GREY) {
         return;
@@ -129,26 +141,44 @@ void MainWindow::on_actionBinarization_triggered()
     imageType = V_BINARY;
 }
 
-void MainWindow::on_actionblur_triggered()
+void MainWindow::on_actionBlur_triggered()
 {
     showImage(F_blur(currentImage));
     showResponseTime();
 }
 
-void MainWindow::on_actionsharpen_triggered()
+void MainWindow::on_actionSharpen_triggered()
 {
     showImage(F_sharpen(currentImage));
     showResponseTime();
 }
 
-void MainWindow::on_actiondilation_triggered()
+void MainWindow::on_actionDilation_triggered()
 {
     showImage(F_dilation(currentImage));
     showResponseTime();
 }
 
-void MainWindow::on_actionerosion_triggered()
+void MainWindow::on_actionErosion_triggered()
 {
     showImage(F_erosion(currentImage));
+    showResponseTime();
+}
+
+void MainWindow::on_actionEqualizeHistogram_triggered()
+{
+    showImage(F_equalizeHistogram(currentImage));
+    showResponseTime();
+}
+
+void MainWindow::on_actionResize_triggered()
+{
+    showImage(F_resize(currentImage, F_NEAREST));
+    showResponseTime();
+}
+
+void MainWindow::on_actionResizeLinear_triggered()
+{
+    showImage(F_resize(currentImage, F_LINEAR));
     showResponseTime();
 }
