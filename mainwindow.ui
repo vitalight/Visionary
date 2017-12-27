@@ -156,8 +156,8 @@ border-color: rgb(0, 0, 0);</string>
       <rect>
        <x>590</x>
        <y>224</y>
-       <width>137</width>
-       <height>102</height>
+       <width>182</width>
+       <height>174</height>
       </rect>
      </property>
      <property name="title">
@@ -165,6 +165,9 @@ border-color: rgb(0, 0, 0);</string>
      </property>
      <addaction name="actionAdd"/>
      <addaction name="actionResize"/>
+     <addaction name="actionResizeLinear"/>
+     <addaction name="actionSpinNearest"/>
+     <addaction name="actionSpinLinear"/>
     </widget>
     <widget class="QMenu" name="menuMorphological">
      <property name="title">
@@ -214,12 +217,24 @@ border-color: rgb(0, 0, 0);</string>
   </widget>
   <action name="actionNew">
    <property name="text">
-    <string>新建</string>
+    <string>新建(&amp;N)</string>
+   </property>
+   <property name="toolTip">
+    <string>新建(N)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="actionOpen">
    <property name="text">
-    <string>打开</string>
+    <string>打开(&amp;O)</string>
+   </property>
+   <property name="toolTip">
+    <string>打开(O)</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
    </property>
   </action>
   <action name="actionSave">
@@ -239,15 +254,30 @@ border-color: rgb(0, 0, 0);</string>
    <property name="text">
     <string>退出</string>
    </property>
+   <property name="shortcut">
+    <string>Esc</string>
+   </property>
   </action>
   <action name="actionUndo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>撤销</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+Z</string>
+   </property>
   </action>
   <action name="actionRedo">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>重做</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Y</string>
    </property>
   </action>
   <action name="actionDecolor">
@@ -270,6 +300,9 @@ border-color: rgb(0, 0, 0);</string>
    </property>
   </action>
   <action name="actionRecover">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
    <property name="text">
     <string>恢复</string>
    </property>
@@ -301,7 +334,7 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionChannelSeperation">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>通道分离</string>
@@ -338,7 +371,22 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionResize">
    <property name="text">
-    <string>缩放</string>
+    <string>缩放（最近邻）</string>
+   </property>
+  </action>
+  <action name="actionResizeLinear">
+   <property name="text">
+    <string>缩放（线性插值）</string>
+   </property>
+  </action>
+  <action name="actionSpinNearest">
+   <property name="text">
+    <string>旋转（最近邻）</string>
+   </property>
+  </action>
+  <action name="actionSpinLinear">
+   <property name="text">
+    <string>旋转（线性插值）</string>
    </property>
   </action>
  </widget>

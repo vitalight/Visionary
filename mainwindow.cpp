@@ -22,7 +22,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 #ifndef __RELEASE__
     on_actionOpen_triggered();
-    on_actionResizeLinear_triggered();
+    on_actionSpinLinear_triggered();
 #endif
 }
 
@@ -37,25 +37,76 @@ void MainWindow::showResponseTime()
     ui->responseTime->setText(s);
 }
 
+void printVector(std::vector<QImage *> vec)
+{
+    qDebug()<<"[vector]:";
+    for (QImage *cur:vec)
+    {
+        qDebug()<<(int)cur;
+    }
+}
+
+void MainWindow::showImage_without_history(QImage *image)
+{
+    currentImage = image;
+    qlabel->setPixmap(QPixmap::fromImage(autoscale()));
+}
+
 void MainWindow::showImage(QImage *image)
 {
 //    if (image->width() != currentImage->width() ||
 //            image->height() != currentImage->height()) {
 //        qlabel->resize(image->width(), image->height());
 //    }
+    if (currentImage == image)
+    {
+        return;
+    }
 
-    if (currentImage != originalImage)
-        free(currentImage);
+    if (historyImages.size() >= 1) {
+        ui->actionUndo->setEnabled(true);
+    }
+
+    if ((int)historyImages.size() > historyIndex + 2) {
+        historyImages[++historyIndex] = image;
+        historyImages.erase(historyImages.begin()+historyIndex+1, historyImages.end());
+        ui->actionRedo->setEnabled(false);
+    } else {
+        historyImages.push_back(image);
+        if (historyImages.size() > HISTORY_MAX)
+        {
+            QImage *back = historyImages[0];
+            historyImages.erase(historyImages.begin());
+
+            // function in [filter.h] is allowed to return input image pointer,
+            // so (back != historyImage.front()) is required
+            if (back != originalImage && back != historyImages[0])
+                free(back);
+            qDebug()<<"[log] showImage:historyImage.size(): "<<historyImages.size();
+        } else {
+            historyIndex++;
+        }
+    }
+
     currentImage = image;
     qlabel->setPixmap(QPixmap::fromImage(autoscale()));
+    ui->actionRecover->setEnabled(true);
 }
 
 QImage MainWindow::autoscale()
 {
+    if (!currentImage)
+    {
+        qDebug()<<"[error] autoscale: null currentImage";
+        exit(-1);
+    }
     QImage newImage= currentImage->scaled(PIC_HEIGHT, PIC_WIDTH,Qt::KeepAspectRatio, Qt::SmoothTransformation);
     return newImage;
 }
 
+/************************************************
+ * Signal slot function for UI to call
+ ************************************************/
 void MainWindow::on_actionOpen_triggered()
 {
     // open file
@@ -75,17 +126,19 @@ void MainWindow::on_actionOpen_triggered()
         QMessageBox::information(this, tr("打开图像失败"), tr("打开图像失败"));
     }
     originalImage = image;
-    currentImage = image;
+    //currentImage = image;
 
     // scale to appropriate size
-    QImage scaledImage = autoscale();
+    //QImage scaledImage = autoscale();
 
     // log
-    currentFile = fileName;
-    qlabel->setPixmap(QPixmap::fromImage(scaledImage));
+    showImage(image);
+    //currentFile = fileName;
+    //qlabel->setPixmap(QPixmap::fromImage(scaledImage));
     qlabel->resize(PIC_HEIGHT, PIC_WIDTH);
     qlabel->setAlignment(Qt::AlignCenter);
     ui->menuFilter->setEnabled(true);
+    ui->actionRecover->setEnabled(true);
 }
 
 void MainWindow::on_actionRecover_triggered()
@@ -93,7 +146,30 @@ void MainWindow::on_actionRecover_triggered()
     if (originalImage!=NULL) {
         showImage(originalImage);
         imageType = V_NORMAL;
+        ui->actionRecover->setEnabled(false);
     }
+}
+
+void MainWindow::on_actionUndo_triggered()
+{
+    if (historyImages.size()==0) {
+        qDebug() << "[Error] Undo without history";
+        return;
+    }
+    showImage_without_history(historyImages[--historyIndex]);
+    if (!historyIndex) {
+        ui->actionUndo->setEnabled(false);
+    }
+    ui->actionRedo->setEnabled(true);
+}
+
+void MainWindow::on_actionRedo_triggered()
+{
+    showImage_without_history(historyImages[++historyIndex]);
+    if (historyIndex == (int)historyImages.size() - 1) {
+        ui->actionRedo->setEnabled(false);
+    }
+    ui->actionUndo->setEnabled(true);
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -180,5 +256,23 @@ void MainWindow::on_actionResize_triggered()
 void MainWindow::on_actionResizeLinear_triggered()
 {
     showImage(F_resize(currentImage, F_LINEAR));
+    showResponseTime();
+}
+
+void MainWindow::on_actionChannelSeperation_triggered()
+{
+    showImage(F_seperation(currentImage, F_R));
+    showResponseTime();
+}
+
+void MainWindow::on_actionSpinNearest_triggered()
+{
+    showImage(F_spin(currentImage, 45, F_NEAREST));
+    showResponseTime();
+}
+
+void MainWindow::on_actionSpinLinear_triggered()
+{
+    showImage(F_spin(currentImage, 45, F_LINEAR));
     showResponseTime();
 }

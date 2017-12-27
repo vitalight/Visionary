@@ -1,11 +1,14 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
-#define PIC_HEIGHT (860.0)
-#define PIC_WIDTH  (640.0)
-//#define __RELEASE__
 
 #include <QMainWindow>
 #include <QLabel>
+#include <vector>
+
+//#define __RELEASE__
+#define PIC_HEIGHT (860.0)
+#define PIC_WIDTH  (640.0)
+#define HISTORY_MAX (12)
 
 namespace Ui {
 class MainWindow;
@@ -46,15 +49,30 @@ private slots:
 
     void on_actionResize_triggered();
 
+    void on_actionResizeLinear_triggered();
+
+    void on_actionChannelSeperation_triggered();
+
+    void on_actionSpinNearest_triggered();
+
+    void on_actionSpinLinear_triggered();
+
+    void on_actionUndo_triggered();
+
+    void on_actionRedo_triggered();
+
 private:
     Ui::MainWindow *ui;
     QString currentFile;
     QImage *originalImage;
     QImage *currentImage;
     QLabel *qlabel;
+    std::vector<QImage *> historyImages;
+    int historyIndex = -1;
     enum {V_NORMAL, V_GREY, V_BINARY} imageType;
 
     void showResponseTime();
+    void showImage_without_history(QImage *image);
     void showImage(QImage *image);
     QImage autoscale();
 };

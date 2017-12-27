@@ -49,12 +49,16 @@ QImage *F_binarization(QImage *image, int threshold);
 ****************************************************************/
 // 加、减、乘、剪裁
 
-// 缩放、旋转（至少两种差值方式：最近邻、双线性）
-// TODO
+// 缩放（最近邻、双线性）
 QImage *F_resize_linear(QImage *image, int width, int height);
 QImage *F_resize_nearest(QImage *image, int width, int height);
 QImage *F_resize(QImage *image, F_ScaleAlgo algo);
-QImage *F_spin(QImage *image, int angle);
+
+// 旋转（最近邻、双线性）
+QImage *F_cut_transparent(QImage *image);
+QImage *F_spin_linear(QImage *image, int angle);
+QImage *F_spin_nearest(QImage *image, int angle);
+QImage *F_spin(QImage *image, int angle, F_ScaleAlgo algo);
 
 /***************************************************************
  * 4. 对比度调节

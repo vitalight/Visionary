@@ -25,21 +25,22 @@ double F_responseTime()
  * 1. 彩色图像处理
 ****************************************************************/
 // 三通道分离
-// [test] none
+// [test] some
 QImage *F_seperation(QImage *image, F_Channel channel)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    int index;
+    int index, color;
 
     switch (channel) {
         case F_R:
             for (int i=0; i<newImage->height(); i++) {
                 for (int j=0; j<newImage->width(); j++) {
                     index = i*newImage->width()+j;
-                    newBits[index] = qRed(bits[index]);
+                    color = qRed(bits[index]);
+                    newBits[index] = qRgb(color, 0, 0);
                 }
             }
             break;
@@ -47,7 +48,8 @@ QImage *F_seperation(QImage *image, F_Channel channel)
             for (int i=0; i<newImage->height(); i++) {
                 for (int j=0; j<newImage->width(); j++) {
                     index = i*newImage->width()+j;
-                    newBits[index] = qGreen(bits[index]);
+                    color = qGreen(bits[index]);
+                    newBits[index] = qRgb(0, color, 0);
                 }
             }
             break;
@@ -55,7 +57,8 @@ QImage *F_seperation(QImage *image, F_Channel channel)
             for (int i=0; i<newImage->height(); i++) {
                 for (int j=0; j<newImage->width(); j++) {
                     index = i*newImage->width()+j;
-                    newBits[index] = qBlue(bits[index]);
+                    color = qBlue(bits[index]);
+                    newBits[index] = qRgb(0, 0, color);
                 }
             }
             break;
@@ -88,14 +91,16 @@ QImage *F_decolor(QImage *image)
 
 // 色相/饱和度/亮度调节
 // [test] none
+#if 0
 F_HSI F_RGB2HSI(QRgb rgb)
 {
     // is rgb scaled to 1?
-
     return F_HSI{1, 1, 1};
 }
+#endif
 
 // [test] none
+#if 0
 QRgb F_HSI2RGB(F_HSI hsi)
 {
     float hue = hsi.h, saturation = hsi.s, intensity = hsi.i;
@@ -123,6 +128,7 @@ QRgb F_HSI2RGB(F_HSI hsi)
     }
     return qRgb(r, g, b);
 }
+#endif
 
 QImage *F_changeHSI(QImage *image);
 
@@ -155,7 +161,8 @@ QImage *F_binarization(QImage *image, int threshold)
 ****************************************************************/
 // 加、减、乘、剪裁
 
-// 缩放（至少两种差值方式：最近邻、双线性）
+// 双线性插值缩放
+// [test] required
 QImage *F_resize_linear(QImage *image, int width, int height)
 {
     TIMMING_BEGIN;
@@ -165,100 +172,65 @@ QImage *F_resize_linear(QImage *image, int width, int height)
 
     int oldWidth = image->width(),
         oldHeight = image->height(),
-        target_w, target_h;
+        target_w, target_h,
+        r, g, b, index;
 
-    float rate_w = float(oldWidth) / width,
-          rate_h = float(oldHeight) / height;
+    float rate_w = float(oldWidth - 1) / (width - 1),
+          rate_h = float(oldHeight - 1) / (height - 1),
+          decimal_w, decimal_h,
+          left_y, right_y, left_x, right_x;
 
+    // todo: deal with 0 seperately
     for (int y = 0; y < height; y++)
     {
-        target_h = (y+1) * rate_h - 1;
+        decimal_h = y * rate_h;
+        target_h = (int)decimal_h;
+        left_y = decimal_h - target_h;
+        right_y = 1 - left_y;
         for (int x = 0; x < width; x++)
         {
-            target_w = (x+1) * rate_w - 1;
-            newBits[x + y * width] = bits[target_w + target_h * oldWidth];
+            decimal_w = x * rate_w;
+            target_w = (int)decimal_w;
+            left_x = decimal_w - target_w;
+            right_x = 1 - left_x;
+
+            index = target_w + target_h * oldWidth;
+
+            if (x == width - 1) {
+                if (y == height - 1) {
+                    r = qRed(bits[index]);
+                    g = qGreen(bits[index]);
+                    b = qBlue(bits[index]);
+                } else {
+                    r = left_y * qRed(bits[index]) + right_y * qRed(bits[index + oldWidth]);
+                    g = left_y * qGreen(bits[index]) + right_y * qGreen(bits[index + oldWidth]);
+                    b = left_y * qBlue(bits[index]) + right_y * qBlue(bits[index + oldWidth]);
+                }
+            } else {
+                if (y == height - 1) {
+                    r = left_x * qRed(bits[index]) + right_x * qRed(bits[index + 1]);
+                    g = left_x * qGreen(bits[index]) + right_x * qGreen(bits[index + 1]);
+                    b = left_x * qBlue(bits[index]) + right_x * qBlue(bits[index + 1]);
+                } else {
+                    r = left_y * (left_x * qRed(bits[index]) + right_x * qRed(bits[index + 1]))
+                            + right_y * (left_x * qRed(bits[index + oldWidth]) + right_x * qRed(bits[index + oldWidth + 1]));
+                    g = left_y * (left_x * qGreen(bits[index]) + right_x * qGreen(bits[index + 1]))
+                            + right_y * (left_x * qGreen(bits[index + oldWidth]) + right_x * qGreen(bits[index + oldWidth + 1]));
+                    b = left_y * (left_x * qBlue(bits[index]) + right_x * qBlue(bits[index + 1]))
+                            + right_y * (left_x * qBlue(bits[index + oldWidth]) + right_x * qBlue(bits[index + oldWidth + 1]));
+                }
+            }
+
+            newBits[x + y * width] = qRgb(r, g, b);
         }
     }
+
     TIMMING_END;
     return newImage;
-#if 0
-    int width,height;
-
-    width=image->width();
-    height=image->height();
-    double x,y,r1,r2,g1,g2,b1,b2;
-    int i,j;
-    double width_bi,height_bi;
-    QRgb rgb00,rgb01,rgb10,rgb11;
-    int r,g,b;
-    QImage SouImage;
-    width_bi=setWidthBi->value();
-    height_bi=setHeightBi->value();
-    SouImage=QImage(width*width_bi,height*height_bi,QImage::Format_ARGB32);
-    for(i=0;i<width*width_bi;i++)
-    {
-        for(j=0;j<height*height_bi;j++)
-        {
-            x=i*(1/width_bi);
-            y=j*(1/height_bi);
-
-            //边界采用单线性插值
-            if(ceil(x)==0&&ceil(y)!=0)
-            {
-                rgb00=image->pixel(0,ceil(y)-1);
-                rgb01=image->pixel(0,ceil(y));
-                r=(ceil(y)-y)*qRed(rgb00)+(y-(ceil(y)-1))*qRed(rgb01);
-                g=(ceil(y)-y)*qGreen(rgb00)+(y-(ceil(y)-1))*qGreen(rgb01);
-                b=(ceil(y)-y)*qBlue(rgb00)+(y-(ceil(y)-1))*qBlue(rgb01);
-                SouImage.setPixel(i,j,qRgb(r,g,b));
-            }
-
-            if(ceil(y)==0&&ceil(y)!=0)
-            {
-                rgb00=image->pixel(ceil(x)-1,0);
-                rgb10=image->pixel(ceil(x),0);
-                r=(ceil(x)-x)*qRed(rgb00)+(x-(ceil(x)-1))*qRed(rgb10);
-                g=(ceil(x)-x)*qGreen(rgb00)+(x-(ceil(x)-1))*qGreen(rgb10);
-                b=(ceil(x)-x)*qBlue(rgb00)+(x-(ceil(x)-1))*qBlue(rgb10);
-                SouImage.setPixel(i,j,qRgb(r,g,b));
-            }
-
-            //(0,0)点特殊处理
-            if(ceil(y)==0&&ceil(y)==0)
-            {
-                rgb00=image->pixel(0,0);
-                SouImage.setPixel(i,j,rgb00);
-            }
-
-            //非边界采用双线性插值
-            if(ceil(x)!=0&&ceil(y)!=0)
-            {
-                rgb00=image->pixel(ceil(x)-1,ceil(y)-1);
-                rgb01=image->pixel(ceil(x)-1,ceil(y));
-                rgb10=image->pixel(ceil(x),ceil(y)-1);
-                rgb11=image->pixel(ceil(x),ceil(y));
-
-                r1=(ceil(x)-x)*qRed(rgb00)+(x-(ceil(x)-1))*qRed(rgb10);
-                r2=(ceil(x)-x)*qRed(rgb01)+(x-(ceil(x)-1))*qRed(rgb11);
-                r=(int)((ceil(y)-y)*r1+(y-(ceil(y)-1))*r2);
-
-                g1=(ceil(x)-x)*qGreen(rgb00)+(x-(ceil(x)-1))*qGreen(rgb10);
-                g2=(ceil(x)-x)*qGreen(rgb01)+(x-(ceil(x)-1))*qGreen(rgb11);
-                g=(int)((ceil(y)-y)*g1+(y-(ceil(y)-1))*g2);
-
-                b1=(ceil(x)-x)*qBlue(rgb00)+(x-(ceil(x)-1))*qBlue(rgb10);
-                b2=(ceil(x)-x)*qBlue(rgb01)+(x-(ceil(x)-1))*qBlue(rgb11);
-                b=(int)((ceil(y)-y)*b1+(y-(ceil(y)-1))*b2);
-
-                SouImage.setPixel(i,j,qRgb(r,g,b));
-            }
-        }
-    }
-    ui->label_2->resize(SouImage.width(),SouImage.height());
-    ui->label_2->setPixmap(QPixmap::fromImage(SouImage));
-#endif
 }
 
+// 最近邻缩放
+// [test] required
 QImage *F_resize_nearest(QImage *image, int width, int height)
 {
     TIMMING_BEGIN;
@@ -270,15 +242,15 @@ QImage *F_resize_nearest(QImage *image, int width, int height)
         oldHeight = image->height(),
         target_w, target_h;
 
-    float rate_w = float(oldWidth) / width,
-          rate_h = float(oldHeight) / height;
+    float rate_w = float(oldWidth - 1) / (width - 1),
+          rate_h = float(oldHeight - 1) / (height - 1);
 
     for (int y = 0; y < height; y++)
     {
-        target_h = (y+1) * rate_h - 1;
+        target_h = int(y * rate_h + 0.499);
         for (int x = 0; x < width; x++)
         {
-            target_w = (x+1) * rate_w - 1;
+            target_w = int(x* rate_w + 0.499);
             newBits[x + y * width] = bits[target_w + target_h * oldWidth];
         }
     }
@@ -288,7 +260,7 @@ QImage *F_resize_nearest(QImage *image, int width, int height)
 
 QImage *F_resize(QImage *image, F_ScaleAlgo algo)
 {
-    int width = 500, height = 1000;
+    int width = 400, height = 200;
 
     if (algo == F_NEAREST)
         return F_resize_nearest(image, width, height);
@@ -296,11 +268,179 @@ QImage *F_resize(QImage *image, F_ScaleAlgo algo)
         return F_resize_linear(image, width, height);
 }
 
-// 旋转
-// [todo]
-QImage *F_spin(QImage *image, int angle)
+// 裁剪透明区域
+QImage *F_cut_transparent(QImage *image)
 {
-    return NULL;
+    QRgb *bits = (QRgb *)image->constBits();
+    int width = image->width(), height =image->height(),
+        min_x = width, min_y = height, max_x = 0, max_y = 0, index = 0;
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            index++;
+            if (qAlpha(bits[index])) {
+                if (x < min_x)
+                    min_x = x;
+                else if (x > max_x)
+                    max_x = x;
+                if (y < min_y)
+                    min_y = y;
+                else if (y > max_y)
+                    max_y = y;
+            }
+        }
+    }
+
+    // if no cut is needed, return original image
+    if (max_x == width - 1 && min_x == 0 && max_y == height - 1 && min_y == 0)
+    {
+        return image;
+    }
+    //qDebug()<<min_x<<", "<<max_x<<", "<<min_y<<", "<<max_y;
+    int newWidth = max_x - min_x + 1, newHeight = max_y - min_y + 1;
+    QImage *newImage = new QImage(newWidth, newHeight, QImage::Format_ARGB32);
+    QRgb *newBits = (QRgb *)newImage->bits();
+    index = 0;
+
+    for (int y = min_y; y <= max_y; y++)
+    {
+        for (int x = min_x; x <= max_x; x++)
+        {
+            newBits[index++] = bits[y * width + x];
+        }
+    }
+
+    return newImage;
+}
+
+// 双线性插值旋转
+// [improve] border missing dots
+QImage *F_spin_linear(QImage *image, int angle)
+{
+    TIMMING_BEGIN;
+    float theta = angle/180.0*3.14159265;
+    int width = image->width(), height = image->height(),
+        newWidth = ceil(abs(width*cos(theta)) + abs(height*sin(theta))),
+        newHeight = ceil(abs(height*cos(theta)) + abs(width*sin(theta))),
+        index, target_index,
+        target_x, target_y,
+        left, right, top, bottom,
+        r, g, b;
+    float decimal_x, decimal_y,
+          delta_x = - 0.5 * newWidth*cos(theta) - 0.5 * newHeight*sin(theta) + 0.5 * width,
+          delta_y = 0.5 * newWidth*sin(theta) - 0.5 * newHeight*cos(theta) + 0.5 * height;
+
+    QImage *newImage = new QImage(newWidth, newHeight, QImage::Format_ARGB32);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+
+    for (int y = 0; y < newHeight; y++)
+    {
+        for (int x = 0; x < newWidth; x++)
+        {
+            // todo
+            decimal_x = x*cos(theta) + y*sin(theta) + delta_x;
+            decimal_y = -x*sin(theta) + y*cos(theta) + delta_y;
+
+            target_x = (int)decimal_x;
+            target_y = (int)decimal_y;
+
+            left = decimal_x - target_x;
+            right = 1-left;
+            top = decimal_y - target_y;
+            bottom = 1-top;
+
+            // ignore blank space
+//            if (decimal_x < 0 || decimal_x >= width-1 || decimal_y < 0 || decimal_y >= height-1) {
+//                continue;
+//            }
+            index = y * newWidth + x;
+            target_index = target_x + target_y * width;
+
+            if (target_x < 0 || target_x >= width-1 ||
+                target_y < 0 || target_y >= height-1 ||
+                !qAlpha(bits[target_index])) {
+                continue;
+            }
+
+
+            if (decimal_x == width) {
+                if (decimal_y == height) {
+
+                }
+            } else {
+                if (decimal_y == height) {
+
+                }
+            }
+
+            r = left * (top * qRed(bits[target_index]) + bottom * qRed(bits[target_index+width]))
+                + right * (top * qRed(bits[target_index+1]) + bottom * qRed(bits[target_index+width+1]));
+            g = left * (top * qGreen(bits[target_index]) + bottom * qGreen(bits[target_index+width]))
+                + right * (top * qGreen(bits[target_index+1]) + bottom * qGreen(bits[target_index+width+1]));
+            b = left * (top * qBlue(bits[target_index]) + bottom * qBlue(bits[target_index+width]))
+                + right * (top * qBlue(bits[target_index+1]) + bottom * qBlue(bits[target_index+width+1]));
+
+            newBits[index] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return F_cut_transparent(newImage);
+}
+
+// 最近邻旋转
+// [improve] border missing dots
+QImage *F_spin_nearest(QImage *image, int angle)
+{
+    TIMMING_BEGIN;
+    float theta = angle/180.0*3.14159265;
+    int width = image->width(), height = image->height(),
+        newWidth = ceil(abs(width*cos(theta)) + abs(height*sin(theta))),
+        newHeight = ceil(abs(height*cos(theta)) + abs(width*sin(theta))),
+        index, target_index,
+        target_x, target_y;
+    float decimal_x, decimal_y,
+          delta_x = - 0.5 * newWidth*cos(theta) - 0.5 * newHeight*sin(theta) + 0.5 * width,
+          delta_y = 0.5 * newWidth*sin(theta) - 0.5 * newHeight*cos(theta) + 0.5 * height;
+
+    QImage *newImage = new QImage(newWidth, newHeight, QImage::Format_ARGB32);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+
+    for (int y = 0; y < newHeight; y++)
+    {
+        for (int x = 0; x < newWidth; x++)
+        {
+            // todo
+            decimal_x = x*cos(theta) + y*sin(theta) + delta_x;
+            decimal_y = -x*sin(theta) + y*cos(theta) + delta_y;
+
+            target_x = (int)(decimal_x + 0.499);
+            target_y = (int)(decimal_y + 0.499);
+
+            // ignore blank space
+            if (target_x < 0 || target_x >= width || target_y < 0 || target_y >= height) {
+                continue;
+            }
+
+            index = y * newWidth + x;
+            target_index = target_x + target_y * width;
+            newBits[index] = bits[target_index];
+        }
+    }
+
+    TIMMING_END;
+    return F_cut_transparent(newImage);
+}
+
+QImage *F_spin(QImage *image, int angle, F_ScaleAlgo algo)
+{
+    if (algo == F_NEAREST)
+        return F_spin_nearest(image, angle);
+    else
+        return F_spin_linear(image, angle);
 }
 
 /***************************************************************
