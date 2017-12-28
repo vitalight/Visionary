@@ -9,17 +9,20 @@
 #include <iostream>
 #include <time.h>
 #include <vector>
+#include <stack>
 
 // color channel for function F_seperation()
 enum F_Channel{F_R, F_G, F_B};
 enum F_ScaleAlgo{F_NEAREST, F_LINEAR};
+enum F_DetectEdgeAlgo{F_SOBEL, F_LAPLACIAN, F_CANNY};
 
 struct F_HSI
 {
-    float h, s, i;
+    double h, s, i;
 };
 
 double F_responseTime();
+std::vector<std::vector<double>> F_getGaussianKernel(int size, double sigma);
 
 /***************************************************************
  * 1. 彩色图像处理
@@ -77,15 +80,21 @@ QImage *F_equalizeHistogram(QImage *image);
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/
 // 均值、中值、高斯
-QImage *F_convolution(QImage *image, int kernel[], int kernelSize, int kernelSum);
+QImage *F_convolution(QImage *image, std::vector<std::vector<int>> kernel, int kernelSum);
 QImage *F_blur(QImage *image);
 QImage *F_sharpen(QImage *image);
 
 /***************************************************************
- * 6. 边缘检测
+ * 6v. 边缘检测
 ****************************************************************/
-// Sobel、拉普拉斯、canny
+// Sobel
+QImage *F_detectEdge_sobel(QImage *image);
+// 拉普拉斯
+QImage *F_detectEdge_laplacian(QImage *image);
+// canny
+QImage *F_detectEdge_canny(QImage *image);
 
+QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo);
 
 /***************************************************************
  * 7. 霍夫变换（选做）

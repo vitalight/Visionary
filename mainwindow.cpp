@@ -13,16 +13,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    imageType = V_NORMAL;
     qlabel = new QLabel(ui->whitebg);
     originalImage = NULL;
     setWindowFlags(windowFlags()
-                   &~Qt::WindowMaximizeButtonHint);    // 禁止最大化按钮
-    setFixedSize(this->width(),this->height());                     // 禁止拖动窗口大小
+                   &~Qt::WindowMaximizeButtonHint); // 禁止最大化按钮
+    setFixedSize(this->width(),this->height());     // 禁止拖动窗口大小
+                      // 鼠标跟踪
 
+//    centralWidget()->setMouseTracking(true);
+//    setMouseTracking(true);
+    qlabel->setMouseTracking(true);
 #ifndef __RELEASE__
     on_actionOpen_triggered();
-    on_actionSpinLinear_triggered();
+    on_actionDetectEdgeCanny_triggered();
 #endif
 }
 
@@ -31,19 +34,19 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::showResponseTime()
+void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
-    QString s = QString("%1s").arg(F_responseTime());
-    ui->responseTime->setText(s);
+    QPoint p = event->pos();
+    QString s = QString("Mouse Location: [%1, %2]").arg(p.x()).arg(p.y());
+    //qDebug()<<"mouseMoveEvent triggered.";
+    ui->mouseLocation->setText(s);
+    ui->colorBar->setStyleSheet("background-color:red");
 }
 
-void printVector(std::vector<QImage *> vec)
+void MainWindow::showResponseTime()
 {
-    qDebug()<<"[vector]:";
-    for (QImage *cur:vec)
-    {
-        qDebug()<<(int)cur;
-    }
+    QString s = QString("Response Time：%1s").arg(F_responseTime());
+    ui->responseTime->setText(s);
 }
 
 void MainWindow::showImage_without_history(QImage *image)
@@ -63,6 +66,7 @@ void MainWindow::showImage(QImage *image)
         return;
     }
 
+    // log in historyImages for future undo and redo operation
     if (historyImages.size() >= 1) {
         ui->actionUndo->setEnabled(true);
     }
@@ -113,10 +117,10 @@ void MainWindow::on_actionOpen_triggered()
 #ifdef __RELEASE__
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("打开图片"),
-                                                    "F:\\PersonalThings\\Artirea\\Pictures\\素材",
+                                                    "F:/MyCodes/Visionary/images",
                                                     "Images (*.png *.bmp *.jpg *.jpeg)");
 #else
-    QString fileName = "F:\\PersonalThings\\Artirea\\Pictures\\素材\\test.png";
+    QString fileName = "F:/MyCodes/Visionary/images/standered.png";
 #endif
     if (fileName == "" || fileName == NULL) {
         return;
@@ -145,7 +149,6 @@ void MainWindow::on_actionRecover_triggered()
 {
     if (originalImage!=NULL) {
         showImage(originalImage);
-        imageType = V_NORMAL;
         ui->actionRecover->setEnabled(false);
     }
 }
@@ -195,12 +198,8 @@ void MainWindow::on_actionAbout_triggered()
 
 void MainWindow::on_actionDecolor_triggered()
 {
-    if (imageType == V_GREY) {
-        return;
-    }
     showImage(F_decolor(currentImage));
     showResponseTime();
-    imageType = V_GREY;
 }
 
 void MainWindow::on_actionBinarization_triggered()
@@ -214,7 +213,6 @@ void MainWindow::on_actionBinarization_triggered()
         return;
     showImage(F_binarization(currentImage, threshold));
     showResponseTime();
-    imageType = V_BINARY;
 }
 
 void MainWindow::on_actionBlur_triggered()
@@ -274,5 +272,23 @@ void MainWindow::on_actionSpinNearest_triggered()
 void MainWindow::on_actionSpinLinear_triggered()
 {
     showImage(F_spin(currentImage, 45, F_LINEAR));
+    showResponseTime();
+}
+
+void MainWindow::on_actionDetectEdgeSobel_triggered()
+{
+    showImage(F_detectEdge(currentImage, F_SOBEL));
+    showResponseTime();
+}
+
+void MainWindow::on_actionDetectEdgeLaplacian_triggered()
+{
+    showImage(F_detectEdge(currentImage, F_LAPLACIAN));
+    showResponseTime();
+}
+
+void MainWindow::on_actionDetectEdgeCanny_triggered()
+{
+    showImage(F_detectEdge(currentImage, F_CANNY));
     showResponseTime();
 }

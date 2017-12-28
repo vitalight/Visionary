@@ -6,9 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>900</width>
+    <width>1200</width>
     <height>750</height>
    </rect>
+  </property>
+  <property name="mouseTracking">
+   <bool>true</bool>
   </property>
   <property name="windowTitle">
    <string>Visionary</string>
@@ -23,14 +26,20 @@
    <string notr="true"/>
   </property>
   <widget class="QWidget" name="centralWidget">
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
    <widget class="QLabel" name="whitebg">
     <property name="geometry">
      <rect>
       <x>20</x>
       <y>20</y>
       <width>860</width>
-      <height>640</height>
+      <height>680</height>
      </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
     </property>
     <property name="styleSheet">
      <string notr="true">background-color: rgb(255, 255, 255);
@@ -46,7 +55,7 @@ border-color: rgb(0, 0, 0);</string>
       <x>0</x>
       <y>0</y>
       <width>900</width>
-      <height>691</height>
+      <height>731</height>
      </rect>
     </property>
     <property name="minimumSize">
@@ -55,6 +64,9 @@ border-color: rgb(0, 0, 0);</string>
       <height>0</height>
      </size>
     </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
     <property name="styleSheet">
      <string notr="true">background-color: rgb(183, 181, 179);</string>
     </property>
@@ -62,43 +74,101 @@ border-color: rgb(0, 0, 0);</string>
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="responseTimeText">
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>0</y>
-      <width>72</width>
-      <height>15</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>响应时间:</string>
-    </property>
-   </widget>
    <widget class="QLabel" name="responseTime">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>0</y>
-      <width>72</width>
-      <height>15</height>
+      <x>920</x>
+      <y>630</y>
+      <width>171</width>
+      <height>16</height>
      </rect>
     </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
     <property name="text">
-     <string>0s</string>
+     <string>Response Time：0s</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="rightPanel">
+    <property name="geometry">
+     <rect>
+      <x>900</x>
+      <y>0</y>
+      <width>301</width>
+      <height>731</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(64, 66, 68);
+color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="mouseLocation">
+    <property name="geometry">
+     <rect>
+      <x>920</x>
+      <y>660</y>
+      <width>251</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>Mouse Location: [0, 0]</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="colorBar">
+    <property name="geometry">
+     <rect>
+      <x>1070</x>
+      <y>690</y>
+      <width>20</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="mouseColor">
+    <property name="geometry">
+     <rect>
+      <x>920</x>
+      <y>690</y>
+      <width>151</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>RGB:(255,255,255)</string>
     </property>
    </widget>
    <zorder>bg_color</zorder>
    <zorder>whitebg</zorder>
-   <zorder>responseTimeText</zorder>
+   <zorder>rightPanel</zorder>
+   <zorder>mouseLocation</zorder>
+   <zorder>colorBar</zorder>
    <zorder>responseTime</zorder>
+   <zorder>mouseColor</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>900</width>
+     <width>1200</width>
      <height>26</height>
     </rect>
    </property>
@@ -176,11 +246,20 @@ border-color: rgb(0, 0, 0);</string>
      <addaction name="actionErosion"/>
      <addaction name="actionDilation"/>
     </widget>
+    <widget class="QMenu" name="menuDetectEdge">
+     <property name="title">
+      <string>边缘检测</string>
+     </property>
+     <addaction name="actionDetectEdgeSobel"/>
+     <addaction name="actionDetectEdgeLaplacian"/>
+     <addaction name="actionDetectEdgeCanny"/>
+    </widget>
     <addaction name="actionBinarization"/>
     <addaction name="separator"/>
     <addaction name="menuColorImageProcess"/>
     <addaction name="menuAdjustContrast"/>
     <addaction name="menuSmoothFilter"/>
+    <addaction name="menuDetectEdge"/>
     <addaction name="menuOperation"/>
     <addaction name="menuMorphological"/>
    </widget>
@@ -194,26 +273,6 @@ border-color: rgb(0, 0, 0);</string>
    <addaction name="menuEdit"/>
    <addaction name="menuFilter"/>
    <addaction name="menuHelp"/>
-  </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
-  <widget class="QStatusBar" name="statusBar"/>
-  <widget class="QToolBar" name="toolBar">
-   <property name="windowTitle">
-    <string>toolBar</string>
-   </property>
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
   </widget>
   <action name="actionNew">
    <property name="text">
@@ -387,6 +446,21 @@ border-color: rgb(0, 0, 0);</string>
   <action name="actionSpinLinear">
    <property name="text">
     <string>旋转（线性插值）</string>
+   </property>
+  </action>
+  <action name="actionDetectEdgeSobel">
+   <property name="text">
+    <string>Sobel边缘检测</string>
+   </property>
+  </action>
+  <action name="actionDetectEdgeLaplacian">
+   <property name="text">
+    <string>拉普拉斯边缘检测</string>
+   </property>
+  </action>
+  <action name="actionDetectEdgeCanny">
+   <property name="text">
+    <string>Canny边缘检测</string>
    </property>
   </action>
  </widget>

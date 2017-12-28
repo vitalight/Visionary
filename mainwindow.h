@@ -2,12 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QMouseEvent>
 #include <QLabel>
 #include <vector>
 
 //#define __RELEASE__
 #define PIC_HEIGHT (860.0)
-#define PIC_WIDTH  (640.0)
+#define PIC_WIDTH  (680.0)
 #define HISTORY_MAX (12)
 
 namespace Ui {
@@ -61,6 +62,12 @@ private slots:
 
     void on_actionRedo_triggered();
 
+    void on_actionDetectEdgeSobel_triggered();
+
+    void on_actionDetectEdgeLaplacian_triggered();
+
+    void on_actionDetectEdgeCanny_triggered();
+
 private:
     Ui::MainWindow *ui;
     QString currentFile;
@@ -69,12 +76,16 @@ private:
     QLabel *qlabel;
     std::vector<QImage *> historyImages;
     int historyIndex = -1;
-    enum {V_NORMAL, V_GREY, V_BINARY} imageType;
+    //enum {V_NORMAL, V_GREY, V_BINARY} imageType;
 
     void showResponseTime();
     void showImage_without_history(QImage *image);
     void showImage(QImage *image);
     QImage autoscale();
+
+protected:
+    void mouseMoveEvent(QMouseEvent* event);
+
 };
 
 #endif // MAINWINDOW_H
