@@ -13,7 +13,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    qlabel = new QLabel(ui->whitebg);
     originalImage = NULL;
     setWindowFlags(windowFlags()
                    &~Qt::WindowMaximizeButtonHint); // 禁止最大化按钮
@@ -22,6 +21,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
 //    centralWidget()->setMouseTracking(true);
 //    setMouseTracking(true);
+    qlabel = new QLabel(ui->whitebg);
+    qlabel->resize(ui->whitebg->geometry().width(), ui->whitebg->geometry().height());
+    qlabel->setAlignment(Qt::AlignCenter);
     qlabel->setMouseTracking(true);
 #ifndef __RELEASE__
     on_actionOpen_triggered();
@@ -37,10 +39,27 @@ MainWindow::~MainWindow()
 void MainWindow::mouseMoveEvent(QMouseEvent* event)
 {
     QPoint p = event->pos();
-    QString s = QString("Mouse Location: [%1, %2]").arg(p.x()).arg(p.y());
-    //qDebug()<<"mouseMoveEvent triggered.";
+    static int x_minus = centralWidget()->geometry().x() + ui->whitebg->geometry().x() + ui->whitebg->geometry().width()/2,
+               y_minus = centralWidget()->geometry().y() + ui->whitebg->geometry().y() + ui->whitebg->geometry().height()/2;
+    int x = qBound(0, p.x() - x_minus + showWidth/2, showWidth-1),
+        y = qBound(0, p.y() - y_minus + showHeight/2, showHeight-1);
+
+    // 显示鼠标坐标
+    QString s = QString("Mouse Location: [%1, %2]")
+            .arg(x+1)
+            .arg(y+1);
     ui->mouseLocation->setText(s);
-    ui->colorBar->setStyleSheet("background-color:red");
+
+    // 显示对应颜色
+    QRgb *bits = (QRgb*)thumbnail.constBits();
+    int r = qRed(bits[y*showWidth+x]),
+        g = qGreen(bits[y*showWidth+x]),
+        b = qBlue(bits[y*showWidth+x]);
+    s = QString("background-color:rgb(%1,%2,%3)").arg(r).arg(g).arg(b);
+    ui->colorBar->setStyleSheet(s);
+    s = QString("RGB:(%1,%2,%3)").arg(r).arg(g).arg(b);
+    ui->colorText->setText(s);
+
 }
 
 void MainWindow::showResponseTime()
@@ -52,7 +71,8 @@ void MainWindow::showResponseTime()
 void MainWindow::showImage_without_history(QImage *image)
 {
     currentImage = image;
-    qlabel->setPixmap(QPixmap::fromImage(autoscale()));
+    thumbnail = autoscale();
+    qlabel->setPixmap(QPixmap::fromImage(thumbnail));
 }
 
 void MainWindow::showImage(QImage *image)
@@ -93,7 +113,8 @@ void MainWindow::showImage(QImage *image)
     }
 
     currentImage = image;
-    qlabel->setPixmap(QPixmap::fromImage(autoscale()));
+    thumbnail = autoscale();
+    qlabel->setPixmap(QPixmap::fromImage(thumbnail));
     ui->actionRecover->setEnabled(true);
 }
 
@@ -104,7 +125,11 @@ QImage MainWindow::autoscale()
         qDebug()<<"[error] autoscale: null currentImage";
         exit(-1);
     }
-    QImage newImage= currentImage->scaled(PIC_HEIGHT, PIC_WIDTH,Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    QImage newImage= currentImage->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
+                                          Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+    showWidth = newImage.width();
+    showHeight = newImage.height();
     return newImage;
 }
 
@@ -128,19 +153,16 @@ void MainWindow::on_actionOpen_triggered()
     QImage *image = new QImage;
     if(!image->load(fileName)) {
         QMessageBox::information(this, tr("打开图像失败"), tr("打开图像失败"));
+        return;
     }
-    originalImage = image;
-    //currentImage = image;
 
-    // scale to appropriate size
-    //QImage scaledImage = autoscale();
+    originalImage = image;
 
     // log
     showImage(image);
     //currentFile = fileName;
-    //qlabel->setPixmap(QPixmap::fromImage(scaledImage));
-    qlabel->resize(PIC_HEIGHT, PIC_WIDTH);
-    qlabel->setAlignment(Qt::AlignCenter);
+    //qlabel->resize(860, 680);
+    //qDebug()<<"Resize: "<<ui->whitebg->geometry().width()<<", "<<ui->whitebg->geometry().height();
     ui->menuFilter->setEnabled(true);
     ui->actionRecover->setEnabled(true);
 }

@@ -139,7 +139,7 @@ color: rgb(255, 255, 255);</string>
      <string/>
     </property>
    </widget>
-   <widget class="QLabel" name="mouseColor">
+   <widget class="QLabel" name="colorText">
     <property name="geometry">
      <rect>
       <x>920</x>
@@ -161,7 +161,7 @@ color: rgb(255, 255, 255);</string>
    <zorder>mouseLocation</zorder>
    <zorder>colorBar</zorder>
    <zorder>responseTime</zorder>
-   <zorder>mouseColor</zorder>
+   <zorder>colorText</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">

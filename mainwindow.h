@@ -7,9 +7,9 @@
 #include <vector>
 
 //#define __RELEASE__
-#define PIC_HEIGHT (860.0)
-#define PIC_WIDTH  (680.0)
-#define HISTORY_MAX (12)
+//#define PIC_HEIGHT (860.0)
+//#define PIC_WIDTH  (680.0)
+#define HISTORY_MAX (8)
 
 namespace Ui {
 class MainWindow;
@@ -71,11 +71,13 @@ private slots:
 private:
     Ui::MainWindow *ui;
     QString currentFile;
-    QImage *originalImage;
-    QImage *currentImage;
+    QImage *originalImage,
+           *currentImage;
+    QImage thumbnail;
     QLabel *qlabel;
     std::vector<QImage *> historyImages;
     int historyIndex = -1;
+    int showWidth = 0, showHeight = 0;
     //enum {V_NORMAL, V_GREY, V_BINARY} imageType;
 
     void showResponseTime();
