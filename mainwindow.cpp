@@ -17,17 +17,14 @@ MainWindow::MainWindow(QWidget *parent) :
     setWindowFlags(windowFlags()
                    &~Qt::WindowMaximizeButtonHint); // 禁止最大化按钮
     setFixedSize(this->width(),this->height());     // 禁止拖动窗口大小
-                      // 鼠标跟踪
 
-//    centralWidget()->setMouseTracking(true);
-//    setMouseTracking(true);
+
     qlabel = new QLabel(ui->whitebg);
     qlabel->resize(ui->whitebg->geometry().width(), ui->whitebg->geometry().height());
     qlabel->setAlignment(Qt::AlignCenter);
-    qlabel->setMouseTracking(true);
+    qlabel->setMouseTracking(true);                 // 鼠标跟踪
 #ifndef __RELEASE__
     on_actionOpen_triggered();
-    on_actionDetectEdgeCanny_triggered();
 #endif
 }
 
@@ -224,22 +221,22 @@ void MainWindow::on_actionDecolor_triggered()
     showResponseTime();
 }
 
-void MainWindow::on_actionBinarization_triggered()
-{
-    bool ok = false;
-    int threshold = QInputDialog::getInt(this,tr("Visionary"),
-                                         tr("请输入阈值"),
-                                         0, 0, 255,
-                                         1, &ok);
-    if (!ok)
-        return;
-    showImage(F_binarization(currentImage, threshold));
-    showResponseTime();
-}
+//void MainWindow::on_actionBinarization_triggered()
+//{
+//    bool ok = false;
+//    int threshold = QInputDialog::getInt(this,tr("Visionary"),
+//                                         tr("请输入阈值"),
+//                                         0, 0, 255,
+//                                         1, &ok);
+//    if (!ok)
+//        return;
+//    showImage(F_binarization(currentImage, threshold));
+//    showResponseTime();
+//}
 
 void MainWindow::on_actionBlur_triggered()
 {
-    showImage(F_blur(currentImage));
+    showImage(F_blur_gaussian(currentImage));
     showResponseTime();
 }
 
@@ -312,5 +309,41 @@ void MainWindow::on_actionDetectEdgeLaplacian_triggered()
 void MainWindow::on_actionDetectEdgeCanny_triggered()
 {
     showImage(F_detectEdge(currentImage, F_CANNY));
+    showResponseTime();
+}
+
+void MainWindow::on_actionOtsu_triggered()
+{
+    showImage(F_binarization_Otsu(currentImage));
+    showResponseTime();
+}
+
+void MainWindow::on_actionDoubleThreshold_triggered()
+{
+    showImage(F_binarization_double(currentImage, 100, 200));
+    showResponseTime();
+}
+
+void MainWindow::on_actionBlurMean_triggered()
+{
+    showImage(F_blur_mean(currentImage, 5));
+    showResponseTime();
+}
+
+void MainWindow::on_actionBlurMedian_triggered()
+{
+    showImage(F_blur_median(currentImage, 3));
+    showResponseTime();
+}
+
+void MainWindow::on_actionMorphologicalOpen_triggered()
+{
+    showImage(F_open(currentImage));
+    showResponseTime();
+}
+
+void MainWindow::on_actionMorphologicalClose_triggered()
+{
+    showImage(F_close(currentImage));
     showResponseTime();
 }

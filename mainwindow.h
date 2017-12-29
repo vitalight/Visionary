@@ -36,8 +36,6 @@ private slots:
 
     void on_actionAbout_triggered();
 
-    void on_actionBinarization_triggered();
-
     void on_actionBlur_triggered();
 
     void on_actionSharpen_triggered();
@@ -67,6 +65,18 @@ private slots:
     void on_actionDetectEdgeLaplacian_triggered();
 
     void on_actionDetectEdgeCanny_triggered();
+
+    void on_actionOtsu_triggered();
+
+    void on_actionDoubleThreshold_triggered();
+
+    void on_actionBlurMean_triggered();
+
+    void on_actionBlurMedian_triggered();
+
+    void on_actionMorphologicalOpen_triggered();
+
+    void on_actionMorphologicalClose_triggered();
 
 private:
     Ui::MainWindow *ui;

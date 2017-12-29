@@ -220,6 +220,8 @@ color: rgb(255, 255, 255);</string>
      </property>
      <addaction name="actionBlur"/>
      <addaction name="actionSharpen"/>
+     <addaction name="actionBlurMean"/>
+     <addaction name="actionBlurMedian"/>
     </widget>
     <widget class="QMenu" name="menuOperation">
      <property name="geometry">
@@ -245,6 +247,8 @@ color: rgb(255, 255, 255);</string>
      </property>
      <addaction name="actionErosion"/>
      <addaction name="actionDilation"/>
+     <addaction name="actionMorphologicalOpen"/>
+     <addaction name="actionMorphologicalClose"/>
     </widget>
     <widget class="QMenu" name="menuDetectEdge">
      <property name="title">
@@ -254,8 +258,14 @@ color: rgb(255, 255, 255);</string>
      <addaction name="actionDetectEdgeLaplacian"/>
      <addaction name="actionDetectEdgeCanny"/>
     </widget>
-    <addaction name="actionBinarization"/>
-    <addaction name="separator"/>
+    <widget class="QMenu" name="menu">
+     <property name="title">
+      <string>二值化</string>
+     </property>
+     <addaction name="actionOtsu"/>
+     <addaction name="actionDoubleThreshold"/>
+    </widget>
+    <addaction name="menu"/>
     <addaction name="menuColorImageProcess"/>
     <addaction name="menuAdjustContrast"/>
     <addaction name="menuSmoothFilter"/>
@@ -366,11 +376,6 @@ color: rgb(255, 255, 255);</string>
     <string>恢复</string>
    </property>
   </action>
-  <action name="actionBinarization">
-   <property name="text">
-    <string>二值化</string>
-   </property>
-  </action>
   <action name="actionBlur">
    <property name="text">
     <string>高斯模糊</string>
@@ -461,6 +466,36 @@ color: rgb(255, 255, 255);</string>
   <action name="actionDetectEdgeCanny">
    <property name="text">
     <string>Canny边缘检测</string>
+   </property>
+  </action>
+  <action name="actionOtsu">
+   <property name="text">
+    <string>大津算法</string>
+   </property>
+  </action>
+  <action name="actionDoubleThreshold">
+   <property name="text">
+    <string>双阈值</string>
+   </property>
+  </action>
+  <action name="actionBlurMean">
+   <property name="text">
+    <string>均值滤波</string>
+   </property>
+  </action>
+  <action name="actionBlurMedian">
+   <property name="text">
+    <string>中值滤波</string>
+   </property>
+  </action>
+  <action name="actionMorphologicalOpen">
+   <property name="text">
+    <string>开操作</string>
+   </property>
+  </action>
+  <action name="actionMorphologicalClose">
+   <property name="text">
+    <string>闭操作</string>
    </property>
   </action>
  </widget>

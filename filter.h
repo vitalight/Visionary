@@ -11,6 +11,8 @@
 #include <vector>
 #include <stack>
 
+#include "util.h"
+
 // color channel for function F_seperation()
 enum F_Channel{F_R, F_G, F_B};
 enum F_ScaleAlgo{F_NEAREST, F_LINEAR};
@@ -22,7 +24,6 @@ struct F_HSI
 };
 
 double F_responseTime();
-std::vector<std::vector<double>> F_getGaussianKernel(int size, double sigma);
 
 /***************************************************************
  * 1. 彩色图像处理
@@ -45,7 +46,9 @@ QImage *F_changeHSI(QImage *image);
 ****************************************************************/
 QImage *F_binarization(QImage *image, int threshold);
 // Otus(大津算法)
+QImage *F_binarization_Otsu(QImage *image);
 // 手动调节：双阈值，实时
+QImage *F_binarization_double(QImage *image, int threshold_low, int threshold_high);
 
 /***************************************************************
  * 3. 代数与几何操作
@@ -70,7 +73,7 @@ QImage *F_spin(QImage *image, int angle, F_ScaleAlgo algo);
 // 非线性调整：对数、指数（系数可调）
 
 // 图像的直方图显示
-std::vector<int> F_getHistogram(QImage *image);
+std::vector<double> F_getHistogram(QImage *image);
 void F_getHistogram_rgb(QImage *image, std::vector<int> &r_h, std::vector<int> &g_h, std::vector<int> &b_h);
 
 // 直方图均衡化
@@ -79,13 +82,18 @@ QImage *F_equalizeHistogram(QImage *image);
 /***************************************************************
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/
-// 均值、中值、高斯
 QImage *F_convolution(QImage *image, std::vector<std::vector<int>> kernel, int kernelSum);
-QImage *F_blur(QImage *image);
+// 均值
+QImage *F_blur_mean(QImage *image, int radius);
+// 中值
+QImage *F_blur_median(QImage *image, int radius);
+// 高斯
+QImage *F_blur_gaussian(QImage *image);
+// 锐化（自做）
 QImage *F_sharpen(QImage *image);
 
 /***************************************************************
- * 6v. 边缘检测
+ * 6. 边缘检测
 ****************************************************************/
 // Sobel
 QImage *F_detectEdge_sobel(QImage *image);
@@ -105,11 +113,15 @@ QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo);
 /***************************************************************
  * 8. 二值数学形态学（结构元允许用户自定义）
 ****************************************************************/
-// 膨胀、腐蚀、开、闭、细化、粗化、距离变换、骨架、骨架重构、二值形态学重构
+// 膨胀、腐蚀、开、闭
 QImage *F_dilation(QImage *image);
 QImage *F_erosion(QImage *image);
 QImage *F_open(QImage *image);
 QImage *F_close(QImage *image);
+// 细化、粗化
+// 距离变换
+// 骨架、骨架重构
+// 二值形态学重构
 
 /***************************************************************
  * 9. 灰度数学形态学

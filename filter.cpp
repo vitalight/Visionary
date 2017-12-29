@@ -15,68 +15,12 @@ using namespace std;
 #define TIMMING_BEGIN (responseTime = (double)clock())
 #define TIMMING_END (responseTime = (double)clock()-responseTime)
 static double responseTime = 0;
-// to check
 static const double PI = 4.0*atan(1.0);
-
-class F_Point
-{
-public:
-    int x;
-    int y;
-
-    F_Point(int x_, int y_)
-        :x(x_), y(y_)
-    {
-    }
-};
 
 double F_responseTime()
 {
     return responseTime/1000.0;
 }
-
-vector<vector<double>> F_getGaussianKernel(int size, double sigma)
-{
-    vector<vector<double>> kernel;
-    int center = size/2;
-    double sum = 0, val;
-    for (int i=0; i<size; i++)
-    {
-        vector<double> line;
-        for (int j=0; j<size; j++)
-        {
-            val = (1/(2*PI*sigma*sigma))*exp(-((i-center)*(i-center)+(j-center)*(j-center))/(2*sigma*sigma));
-            line.push_back(val);
-            sum += val;
-        }
-        kernel.push_back(line);
-    }
-
-    for (int i=0; i<size; i++)
-    {
-        for (int j=0; j<size; j++)
-        {
-            kernel[i][j]/=sum;
-        }
-    }
-    return kernel;
-}
-
-int myRound(double f)
-{
-    return (int)(f+0.5);
-}
-
-bool myIn(int low, int value, int high)
-{
-    return value>=low && value<high;
-}
-
-bool myLegal(int width, int height, int x, int y)
-{
-    return x>=0 && x<width && y>=0 && y<height;
-}
-
 /***************************************************************
  * 1. 彩色图像处理
 ****************************************************************/
@@ -212,6 +156,69 @@ QImage *F_binarization(QImage *image, int threshold)
     TIMMING_END;
     return newImage;
 }
+// Otus(大津算法)
+QImage *F_binarization_Otsu(QImage *image)
+{
+    int threshold=0;
+    vector<double> histogram = F_getHistogram(image);
+
+    /********************************************
+     *  g = w0/(1-w0) * (u0-u)^2
+     * ******************************************
+     *  g: variance
+     *  w0: foreground rate
+     *  u: total grey average
+     *  u0: foreground grey average
+     *  choose the threshold that has greatest g;
+     ********************************************/
+    double variance, varianceMax = 0,
+           foregroundRate = 0,
+           foregroundSum = 0,
+           avg = 0,
+           u0_minus_u;
+
+    for (int i = 0; i < 256; i++)
+    {
+        avg += i * histogram[i];
+    }
+
+    for (int i = 0; i < 256; i++)
+    {
+        foregroundRate += histogram[i];
+        foregroundSum += i * histogram[i];
+        u0_minus_u = foregroundSum/foregroundRate - avg,
+        variance = foregroundRate/(1-foregroundRate) * pow(u0_minus_u, 2);
+        if (variance > varianceMax)
+        {
+            varianceMax = variance;
+            threshold = i;
+        }
+    }
+
+    qDebug()<<"Threshold: "<<threshold;
+    return F_binarization(image, threshold);
+}
+// 手动调节：双阈值，实时
+QImage *F_binarization_double(QImage *image, int threshold_low, int threshold_high)
+{
+    TIMMING_BEGIN;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int index, avg, value;
+
+    for (int i=0; i<newImage->height(); i++) {
+        for (int j=0; j<newImage->width(); j++) {
+            index = i*newImage->width()+j;
+            avg = (qRed(bits[index]) + qGreen(bits[index]) + qBlue(bits[index]))/3;
+            value = avg > threshold_low && avg < threshold_high ? 255 : 0;
+            newBits[index] = qRgb(value, value, value);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
 
 /***************************************************************
  * 3. 代数与几何操作
@@ -304,10 +311,10 @@ QImage *F_resize_nearest(QImage *image, int width, int height)
 
     for (int y = 0; y < height; y++)
     {
-        target_h = myRound(y * rate_h);
+        target_h = U_round(y * rate_h);
         for (int x = 0; x < width; x++)
         {
-            target_w = myRound(x* rate_w);
+            target_w = U_round(x* rate_w);
             newBits[x + y * width] = bits[target_w + target_h * oldWidth];
         }
     }
@@ -473,8 +480,8 @@ QImage *F_spin_nearest(QImage *image, int angle)
             decimal_x = x*cos(theta) + y*sin(theta) + delta_x;
             decimal_y = -x*sin(theta) + y*cos(theta) + delta_y;
 
-            target_x = myRound(decimal_x);
-            target_y = myRound(decimal_y);
+            target_x = U_round(decimal_x);
+            target_y = U_round(decimal_y);
 
             // ignore blank space
             if (target_x < 0 || target_x >= width || target_y < 0 || target_y >= height) {
@@ -507,23 +514,29 @@ QImage *F_spin(QImage *image, int angle, F_ScaleAlgo algo)
 
 // 图像的直方图显示
 // [test] none
-vector<int> F_getHistogram(QImage *image)
+vector<double> F_getHistogram(QImage *image)
 {
-    vector<int> histogram(256);
+    vector<double> histogram(256);
     QRgb *bits = (QRgb *)image->constBits();
     int index,
         width = image->width(),
-        height = image->height();
+        height = image->height(),
+        numberOfPixal = width*height;
 
     for (int x=0; x<width; x++)
     {
         for (int y=0; y<height; y++)
         {
             index = y*image->width()+x;
-            int avg = (qRed(bits[index]) + qGreen(bits[index]) + qBlue(bits[index]))/3;
-            histogram[avg]++;
+            histogram[qRed(bits[index])]++;
         }
     }
+
+    for (int i = 0; i < 256; i++)
+    {
+            histogram[i] /= numberOfPixal;
+    }
+
     return histogram;
 }
 
@@ -599,7 +612,6 @@ QImage *F_equalizeHistogram(QImage *image)
 /***************************************************************
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/
-// 均值、中值、高斯
 // [reminder] kernelSum is necessary because some call need no normalization
 QImage *F_convolution(QImage *image, vector<vector<double>> kernel, int kernelSum)
 {
@@ -627,9 +639,9 @@ QImage *F_convolution(QImage *image, vector<vector<double>> kernel, int kernelSu
                 }
             }
 
-            r = qBound(0, myRound(d_r/kernelSum), 255);
-            g = qBound(0, myRound(d_g/kernelSum), 255);
-            b = qBound(0, myRound(d_b/kernelSum), 255);
+            r = qBound(0, U_round(d_r/kernelSum), 255);
+            g = qBound(0, U_round(d_g/kernelSum), 255);
+            b = qBound(0, U_round(d_b/kernelSum), 255);
 
             newBits[y*image->width()+x] = qRgb(r,g,b);
         }
@@ -638,19 +650,62 @@ QImage *F_convolution(QImage *image, vector<vector<double>> kernel, int kernelSu
     return newImage;
 }
 
-// 高斯模糊
-QImage *F_blur(QImage *image)
+// 均值
+QImage *F_blur_mean(QImage *image, int radius)
 {
-//    273 kernalSum
-//    vector<vector<double>> kernel = {{1,  4,  7,  4, 1},
-//                                     {4, 16, 26, 16, 4},
-//                                     {7, 26, 41, 26, 7},
-//                                     {4, 16, 26, 16, 4},
-//                                     {1,  4,  7,  4, 1}};
-    vector<vector<double>> kernel = F_getGaussianKernel(5, 1);
+    vector<vector<double>> kernel = U_getFlatKernel_d(radius);
+    return F_convolution(image, kernel, radius*radius);
+}
+
+// 中值
+QImage *F_blur_median(QImage *image, int radius)
+{
+    TIMMING_BEGIN;
+    int halfSize = radius/2,
+        bitsIndex,
+        r, g, b;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+
+    for (int x = 0; x < image->width(); x++) {
+        for (int y = 0; y < image->height(); y++) {
+
+            vector<int> median_r, median_g, median_b;
+            for (int i = -halfSize; i <= halfSize; i++) {
+                for (int j = -halfSize; j <= halfSize; j++) {
+                    bitsIndex = qBound(0, x+i, image->width()-1)
+                            + image->width() * qBound(0, y+j, image->height()-1);
+
+                    median_r.push_back(qRed(bits[bitsIndex]));
+                    median_g.push_back(qGreen(bits[bitsIndex]));
+                    median_b.push_back(qBlue(bits[bitsIndex]));
+                }
+            }
+
+            sort(median_r.begin(), median_r.end());
+            sort(median_g.begin(), median_g.end());
+            sort(median_b.begin(), median_b.end());
+
+            r = median_r[radius/2];
+            g = median_g[radius/2];
+            b = median_b[radius/2];
+
+            newBits[y*image->width()+x] = qRgb(r,g,b);
+        }
+    }
+    TIMMING_END;
+    return newImage;
+}
+
+// 高斯
+QImage *F_blur_gaussian(QImage *image)
+{
+    vector<vector<double>> kernel = U_getGaussianKernel(5, 1);
     return F_convolution(image, kernel, 1);
 }
 
+// 锐化（自定）
 QImage *F_sharpen(QImage *image)
 {
     vector<vector<double>> kernel = {{0, -1,  0},
@@ -704,9 +759,9 @@ QImage *F_detectEdge_sobel(QImage *image)
                 }
             }
 
-            r = qBound(0, myRound(sqrt(pow(r_x, 2) + pow(r_y, 2))), 255);
-            g = qBound(0, myRound(sqrt(pow(g_x, 2) + pow(g_y, 2))), 255);
-            b = qBound(0, myRound(sqrt(pow(b_x, 2) + pow(b_y, 2))), 255);
+            r = qBound(0, U_round(sqrt(pow(r_x, 2) + pow(r_y, 2))), 255);
+            g = qBound(0, U_round(sqrt(pow(g_x, 2) + pow(g_y, 2))), 255);
+            b = qBound(0, U_round(sqrt(pow(b_x, 2) + pow(b_y, 2))), 255);
             newBits[y*image->width()+x] = qRgb(r,g,b);
         }
     }
@@ -771,7 +826,7 @@ QImage *F_detectEdge_canny(QImage *image)
 
             line.push_back(((int)(theta+8))%8);
 
-            color = qBound(0, myRound(sqrt(pow(sum_x, 2) + pow(sum_y, 2))), 255);
+            color = qBound(0, U_round(sqrt(pow(sum_x, 2) + pow(sum_y, 2))), 255);
             newBits[y*width+x] = qRgb(color, color, color);
         }
         direction.push_back(line);
@@ -851,8 +906,8 @@ QImage *F_detectEdge_canny(QImage *image)
                 visited[y][x] = true;
 
                 // track this edge
-                stack<F_Point> edge;
-                F_Point point = F_Point(x, y);
+                stack<U_Point> edge;
+                U_Point point = U_Point(x, y);
                 edge.push(point);
 
                 while(edge.size())
@@ -866,10 +921,10 @@ QImage *F_detectEdge_canny(QImage *image)
                         for (int j = -1; j < 2; j++)
                         {
                             int newy = y+j, newx = x+i;
-                            if(myLegal(width, height, newx, newy) &&
+                            if(U_legal(width, height, newx, newy) &&
                                !visited[newy][newx] &&
                                qRed(newBits[newy*width+newx]) >= threshold_low) {
-                                edge.push(F_Point(newx, newy));
+                                edge.push(U_Point(newx, newy));
                                 visited[newy][newx] = true;
                             }
                         }
@@ -898,11 +953,11 @@ QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo)
     switch (algo)
     {
     case F_SOBEL:
-        return F_detectEdge_sobel(F_decolor(F_blur(image)));
+        return F_detectEdge_sobel(F_decolor(F_blur_gaussian(image)));
     case F_LAPLACIAN:
         return F_detectEdge_laplacian(image);
     case F_CANNY:
-        return F_detectEdge_canny(F_decolor(F_blur(image)));
+        return F_detectEdge_canny(F_decolor(F_blur_gaussian(image)));
     }
     return image;
 }
@@ -923,11 +978,7 @@ QImage *F_dilation(QImage *image)
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    vector<vector<int>> kernel = {{1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1}};
+    vector<vector<int>> kernel = U_getFlatKernel_i(5);
     int kernelSize = 5,
         halfSize = kernelSize/2,
         r, g, b, index;
@@ -964,11 +1015,7 @@ QImage *F_erosion(QImage *image)
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    vector<vector<int>> kernel = {{1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1},
-                                  {1, 1, 1, 1, 1}};
+    vector<vector<int>> kernel = U_getFlatKernel_i(5);
     int kernelSize = kernel.size(),
         halfSize = kernelSize/2,
         r, g, b, index;
@@ -1001,16 +1048,24 @@ QImage *F_erosion(QImage *image)
 // 开操作
 QImage *F_open(QImage *image)
 {
-    return image;
+    return F_dilation(F_erosion(image));
 }
 
 // 闭操作
 QImage *F_close(QImage *image)
 {
-    return image;
+    return F_erosion(F_dilation(image));
 }
 
-// 细化、粗化、距离变换、骨架、骨架重构、二值形态学重构
+// 细化
+// 粗化
+// 距离变换
+// 骨架、骨架重构
+QImage *F_skeletonize(QImage *image)
+{
+    return image;
+}
+// 二值形态学重构
 
 /***************************************************************
  * 9. 灰度数学形态学
