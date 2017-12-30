@@ -105,7 +105,6 @@ void MainWindow::showImage(QImage *image)
             // so (back != historyImage.front()) is required
             if (back != images[imageIndex].originalImage && back != images[imageIndex].historyImages[0])
                 free(back);
-            qDebug()<<"[log] showImage:historyImage.size(): "<<images[imageIndex].historyImages.size();
         } else {
             images[imageIndex].historyIndex++;
         }
@@ -116,6 +115,7 @@ void MainWindow::showImage(QImage *image)
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
     updateHistogram();
     ui->actionRecover->setEnabled(true);
+    ui->actionRedo->setEnabled(false);
 }
 
 QImage MainWindow::autoscale()
@@ -138,6 +138,38 @@ void MainWindow::showTip(QString str)
     ui->tip->setText(str);
 }
 
+/************************************************
+ * Input slider
+ ************************************************/
+void MainWindow::on_slider1_sliderReleased()
+{
+    //showImage(F_adjustHSB(images[imageIndex].originalImage, ui->slider1->value(), ui->slider2->value(), ui->slider3->value()));
+}
+
+void MainWindow::on_slider2_sliderReleased()
+{
+    //showImage(F_adjustHSB(images[imageIndex].originalImage, ui->slider1->value(), ui->slider2->value(), ui->slider3->value()));
+}
+
+void MainWindow::on_slider3_sliderReleased()
+{
+    //showImage(F_adjustHSB(images[imageIndex].originalImage, ui->slider1->value(), ui->slider2->value(), ui->slider3->value()));
+}
+
+void MainWindow::on_slider1_sliderMoved(int position)
+{
+    //showImage(F_adjustHSB(images[imageIndex].originalImage, ui->slider1->value(), ui->slider2->value(), ui->slider3->value()));
+}
+
+void MainWindow::on_slider2_sliderMoved(int position)
+{
+
+}
+
+void MainWindow::on_slider3_sliderMoved(int position)
+{
+
+}
 /************************************************
  * Signal slot function for UI operation
  ************************************************/
@@ -334,16 +366,34 @@ void MainWindow::on_actionSharpen_triggered()
 
 void MainWindow::on_actionDilation_triggered()
 {
-    showImage(F_dilation(getCurrentImage()));
+    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
+    showImage(F_dilation(getCurrentImage(), kernel));
     showResponseTime();
     showTip("上次操作：膨胀");
 }
 
 void MainWindow::on_actionErosion_triggered()
 {
-    showImage(F_erosion(getCurrentImage()));
+    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
+    showImage(F_erosion(getCurrentImage(), kernel));
     showResponseTime();
     showTip("上次操作：腐蚀");
+}
+
+void MainWindow::on_actionMorphologicalOpen_triggered()
+{
+    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
+    showImage(F_open(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：开操作");
+}
+
+void MainWindow::on_actionMorphologicalClose_triggered()
+{
+    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
+    showImage(F_close(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：闭操作");
 }
 
 void MainWindow::on_actionEqualizeHistogram_triggered()
@@ -423,19 +473,7 @@ void MainWindow::on_actionDoubleThreshold_triggered()
     showTip("上次操作：双阈值二值化");
 }
 
-void MainWindow::on_actionMorphologicalOpen_triggered()
-{
-    showImage(F_open(getCurrentImage()));
-    showResponseTime();
-    showTip("上次操作：开操作");
-}
 
-void MainWindow::on_actionMorphologicalClose_triggered()
-{
-    showImage(F_close(getCurrentImage()));
-    showResponseTime();
-    showTip("上次操作：闭操作");
-}
 
 void MainWindow::on_actionAdd_triggered()
 {
@@ -498,11 +536,8 @@ void MainWindow::on_actionShowHistogram_toggled(bool arg1)
 
 void MainWindow::on_actionadjustHSI_triggered()
 {
-
-}
-
-void MainWindow::on_horizontalSlider_sliderReleased()
-{
-
+    showImage(F_adjustHSB(getCurrentImage(), 60, -50, 50));
+    showResponseTime();
+    showTip("上次操作：调整HSI");
 }
 

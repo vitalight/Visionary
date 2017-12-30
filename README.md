@@ -8,6 +8,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [ ] 实时显示
   - [ ] 晶格化滤镜（自制）
   - [ ] 连续旋转改为累计旋转
+  - [ ] 模仿Typora外观 
+  - [ ] timming取消，或者放mainwindow
   - [x] 双图片显示
   - [x] 历史操作显示
 
@@ -15,7 +17,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - 彩色图像处理
   - [x] 三通道分离
   - [x] 彩色  --》灰度
-  - [ ] 色相/饱和度/亮度调节
+  - [x] 色相/饱和度/亮度调节
   - [ ] 色阶调整（选做）
 - 二值化
   - [x] Otus

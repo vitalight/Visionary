@@ -13,6 +13,9 @@
 
 #include "util.h"
 
+typedef std::vector<std::vector<double>> F_kernel_d;
+typedef std::vector<std::vector<int>> F_kernel_i;
+
 // color channel for function F_seperation()
 enum F_Channel{F_R, F_G, F_B};
 enum F_ScaleAlgo{F_NEAREST, F_LINEAR};
@@ -41,7 +44,7 @@ QImage *F_decolor(QImage *image);
 // 色相/饱和度/亮度调节
 F_HSB F_RGB2HSB(QRgb rgb);
 QRgb F_HSB2RGB(F_HSB hsi);
-QImage *F_changeHSB(QImage *image);
+QImage *F_adjustHSB(QImage *image, int h_val, int s_val, int b_val);
 
 // 色阶调整(选做)
 
@@ -90,7 +93,7 @@ QImage *F_equalizeHistogram(QImage *image);
 /***************************************************************
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/
-QImage *F_convolution(QImage *image, std::vector<std::vector<int>> kernel, int kernelSum);
+QImage *F_convolution(QImage *image, F_kernel_i kernel, int kernelSum);
 // 均值、中值、高斯、锐化（自做）
 QImage *F_blur_mean(QImage *image, int radius);
 QImage *F_blur_median(QImage *image, int radius);
@@ -116,11 +119,15 @@ QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo);
  * 8. 二值数学形态学（结构元允许用户自定义）
 ****************************************************************/
 // 膨胀、腐蚀、开、闭
-QImage *F_dilation(QImage *image);
-QImage *F_erosion(QImage *image);
-QImage *F_open(QImage *image);
-QImage *F_close(QImage *image);
+QImage *F_dilation(QImage *image, F_kernel_i kernel);
+QImage *F_erosion(QImage *image, F_kernel_i kernel);
+QImage *F_open(QImage *image, F_kernel_i kernel);
+QImage *F_close(QImage *image, F_kernel_i kernel);
 // 细化、粗化
+QImage *F_complement(QImage *image);
+QImage *F_union(QImage *image1, QImage *image2);
+QImage *F_intersection(QImage *image1, QImage *image2);
+QImage *F_hitOrMiss(QImage *image, F_kernel_i kernel);
 // 距离变换
 // 骨架、骨架重构
 // 二值形态学重构

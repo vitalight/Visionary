@@ -21,6 +21,27 @@ double F_responseTime()
 {
     return responseTime/1000.0;
 }
+
+// this is a example function
+QImage *F_example(QImage *image)
+{
+    TIMMING_BEGIN;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            newBits[y*width+x] = bits[y*width+x];
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
 /***************************************************************
  * 1. 彩色图像处理
 ****************************************************************/
@@ -161,7 +182,36 @@ QRgb F_HSB2RGB(F_HSB hsb)
     return qRgb(r*255, g*255, b*255);
 }
 
-QImage *F_changeHSI(QImage *image);
+QImage *F_adjustHSB(QImage *image, int h_val, int s_val, int b_val)
+{
+    TIMMING_BEGIN;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            F_HSB hsb = F_RGB2HSB(bits[y*width+x]);
+
+            // do something with fsb;
+            hsb.h = (int)(hsb.h+h_val+180) % 360;
+            hsb.s *= 1.0 + s_val/100.0;
+            if (hsb.s>1)
+                hsb.s = 1;
+            hsb.b *= 1.0 + b_val/100.0;
+            if (hsb.b>1)
+                hsb.b = 1;
+
+            newBits[y*width+x] = F_HSB2RGB(hsb);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
 
 /***************************************************************
  * 2. 二值化
@@ -764,7 +814,7 @@ QImage *F_equalizeHistogram(QImage *image)
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/
 // [reminder] kernelSum is necessary because some call need no normalization
-QImage *F_convolution(QImage *image, vector<vector<double>> kernel, int kernelSum)
+QImage *F_convolution(QImage *image, F_kernel_d kernel, int kernelSum)
 {
     TIMMING_BEGIN;
     int halfSize = kernel.size()/2,
@@ -804,7 +854,7 @@ QImage *F_convolution(QImage *image, vector<vector<double>> kernel, int kernelSu
 // 均值
 QImage *F_blur_mean(QImage *image, int radius)
 {
-    vector<vector<double>> kernel = U_getFlatKernel_d(radius);
+    F_kernel_d kernel = U_getFlatKernel_d(radius);
     return F_convolution(image, kernel, radius*radius);
 }
 
@@ -852,14 +902,14 @@ QImage *F_blur_median(QImage *image, int radius)
 // 高斯
 QImage *F_blur_gaussian(QImage *image)
 {
-    vector<vector<double>> kernel = U_getGaussianKernel(5, 1);
+    F_kernel_d kernel = U_getGaussianKernel(5, 1);
     return F_convolution(image, kernel, 1);
 }
 
 // 锐化（自定）
 QImage *F_sharpen(QImage *image)
 {
-    vector<vector<double>> kernel = {{0, -1,  0},
+    F_kernel_d kernel = {{0, -1,  0},
                                      {-1, 5, -1},
                                      {0, -1,  0}};
     return F_convolution(image, kernel, 1);
@@ -872,10 +922,10 @@ QImage *F_sharpen(QImage *image)
 QImage *F_detectEdge_sobel(QImage *image)
 {
     TIMMING_BEGIN;
-    vector<vector<int>> kernel_x = {{-1, 0, 1},
+    F_kernel_i kernel_x = {{-1, 0, 1},
                                     {-2, 0, 2},
                                     {-1, 0, 1}};
-    vector<vector<int>> kernel_y = {{-1, -2, -1},
+    F_kernel_i kernel_y = {{-1, -2, -1},
                                     { 0,  0,  0},
                                     { 1,  2,  1}};
 
@@ -922,7 +972,7 @@ QImage *F_detectEdge_sobel(QImage *image)
 // 拉普拉斯
 QImage *F_detectEdge_laplacian(QImage *image)
 {
-    vector<vector<double>> kernel = {{0, 1, 0},
+    F_kernel_d kernel = {{0, 1, 0},
                                      {1,-4, 1},
                                      {0, 1, 0}};
     return F_convolution(image, kernel, 1);
@@ -933,13 +983,13 @@ QImage *F_detectEdge_canny(QImage *image)
     TIMMING_BEGIN;
     int threshold_low = 55, threshold_high = 90;
 
-    vector<vector<int>> kernel_x = {{-1,  0,  1},
+    F_kernel_i kernel_x = {{-1,  0,  1},
                                     {-2,  0,  2},
                                     {-1,  0,  1}};
-    vector<vector<int>> kernel_y = {{-1, -2, -1},
+    F_kernel_i kernel_y = {{-1, -2, -1},
                                     { 0,  0,  0},
                                     { 1,  2,  1}};
-    vector<vector<int>> direction;
+    F_kernel_i direction;
 
     int halfSize = 1,
         sum_x, sum_y,
@@ -1123,13 +1173,12 @@ QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo)
  * 8. 二值数学形态学（结构元允许用户自定义）
 ****************************************************************/
 // 膨胀
-QImage *F_dilation(QImage *image)
+QImage *F_dilation(QImage *image, F_kernel_i kernel)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    vector<vector<int>> kernel = U_getFlatKernel_i(5);
     int kernelSize = 5,
         halfSize = kernelSize/2,
         r, g, b, index;
@@ -1160,13 +1209,12 @@ QImage *F_dilation(QImage *image)
 }
 
 // 腐蚀
-QImage *F_erosion(QImage *image)
+QImage *F_erosion(QImage *image, F_kernel_i kernel)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    vector<vector<int>> kernel = U_getFlatKernel_i(5);
     int kernelSize = kernel.size(),
         halfSize = kernelSize/2,
         r, g, b, index;
@@ -1197,18 +1245,108 @@ QImage *F_erosion(QImage *image)
 }
 
 // 开操作
-QImage *F_open(QImage *image)
+QImage *F_open(QImage *image, F_kernel_i kernel)
 {
-    return F_dilation(F_erosion(image));
+    return F_dilation(F_erosion(image, kernel), kernel);
 }
 
 // 闭操作
-QImage *F_close(QImage *image)
+QImage *F_close(QImage *image, F_kernel_i kernel)
 {
-    return F_erosion(F_dilation(image));
+    return F_erosion(F_dilation(image, kernel), kernel);
 }
 
 // 细化
+QImage *F_complement(QImage *image)
+{
+    TIMMING_BEGIN;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height();
+    int r;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = 255 - qRed(bits[y*width+x]);
+            newBits[y*width+x] = qRgb(r, r, r);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+QImage *F_union(QImage *image1, QImage *image2)
+{
+    TIMMING_BEGIN;
+    int width1 = image1->width(), height1 = image1->height(),
+        width2 = image2->width(), height2 = image2->height(),
+        width = max(width1, width2),
+        height = max(height1, height2),
+        r;
+    QImage *newImage = new QImage(width, height, QImage::Format_ARGB32);
+    QRgb *bits1 = (QRgb*)image1->constBits(),
+         *bits2 = (QRgb*)image2->constBits(),
+         *newBits = (QRgb*)newImage->bits();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            if ((!U_legal(width1, height1, x, y) || qRed(bits1[y*width1+x])) ||
+                (!U_legal(width2, height2, x, y) || qRed(bits2[y*width2+x])))
+                r = 255;
+            else
+                r = 0;
+
+            newBits[y*width+x] = qRgb(r, r, r);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+QImage *F_intersection(QImage *image1, QImage *image2)
+{
+    TIMMING_BEGIN;
+    int width1 = image1->width(), height1 = image1->height(),
+        width2 = image2->width(), height2 = image2->height(),
+        width = max(width1, width2),
+        height = max(height1, height2),
+        r;
+    QImage *newImage = new QImage(width, height, QImage::Format_ARGB32);
+    QRgb *bits1 = (QRgb*)image1->constBits(),
+         *bits2 = (QRgb*)image2->constBits(),
+         *newBits = (QRgb*)newImage->bits();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            if ((!U_legal(width1, height1, x, y) || qRed(bits1[y*width1+x])) &&
+                (!U_legal(width2, height2, x, y) || qRed(bits2[y*width2+x])))
+                r = 255;
+            else
+                r = 0;
+
+            newBits[y*width+x] = qRgb(r, r, r);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+// [todo] error
+QImage *F_hitOrMiss(QImage *image, F_kernel_i kernel)
+{
+    // A (*) B = (A (-) B1) Intersect (Ac (-) B2)
+    return F_intersection(F_erosion(image, kernel), F_erosion(F_complement(image), kernel));
+}
 // 粗化
 // 距离变换
 // 骨架、骨架重构

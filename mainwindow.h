@@ -8,8 +8,6 @@
 #include <vector>
 
 //#define __RELEASE__
-//#define PIC_HEIGHT (860.0)
-//#define PIC_WIDTH  (680.0)
 #define HISTORY_MAX (8)
 #define TAB_OFFSET (28)
 
@@ -107,9 +105,19 @@ private slots:
 
     void on_actionShowHistogram_toggled(bool arg1);
 
-    void on_horizontalSlider_sliderReleased();
-
     void on_actionadjustHSI_triggered();
+
+    void on_slider1_sliderReleased();
+
+    void on_slider2_sliderReleased();
+
+    void on_slider3_sliderReleased();
+
+    void on_slider1_sliderMoved(int position);
+
+    void on_slider2_sliderMoved(int position);
+
+    void on_slider3_sliderMoved(int position);
 
 private:
     Ui::MainWindow *ui;
