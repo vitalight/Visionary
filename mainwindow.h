@@ -10,10 +10,22 @@
 //#define PIC_HEIGHT (860.0)
 //#define PIC_WIDTH  (680.0)
 #define HISTORY_MAX (8)
+#define TAB_OFFSET (28)
 
 namespace Ui {
 class MainWindow;
 }
+
+class ImageInfo
+{
+public:
+    QImage *originalImage = NULL,
+           *currentImage = NULL;
+    QImage thumbnail;
+    std::vector<QImage *> historyImages;
+    int historyIndex = -1;
+    int showWidth = 0, showHeight = 0;
+};
 
 class MainWindow : public QMainWindow
 {
@@ -78,16 +90,17 @@ private slots:
 
     void on_actionMorphologicalClose_triggered();
 
+    void on_switchButton_clicked();
+
+    void on_actionSwitch_triggered();
+
 private:
     Ui::MainWindow *ui;
-    QString currentFile;
-    QImage *originalImage,
-           *currentImage;
-    QImage thumbnail;
+
     QLabel *qlabel;
-    std::vector<QImage *> historyImages;
-    int historyIndex = -1;
-    int showWidth = 0, showHeight = 0;
+    ImageInfo images[2];
+    int imageIndex = 0;
+
     //enum {V_NORMAL, V_GREY, V_BINARY} imageType;
 
     void showResponseTime();

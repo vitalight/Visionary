@@ -8,6 +8,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [ ] 实时显示
   - [ ] 晶格化滤镜（自制）
   - [ ] 连续旋转改为累计旋转
+  - [x] 双图片显示
 
 
 - 彩色图像处理
@@ -35,14 +36,14 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [ ] 检测直线和圆
 - 二值数学形态学（结构元允许用户自定义）
   - [x] 膨胀、腐蚀
-  - [ ] 开、闭
+  - [x] 开、闭
   - [ ] 细化、粗化
   - [ ] 距离变换
   - [ ] 骨架、骨架重构
   - [ ] 二值形态学重构
 - 灰度数学形态学
-  - [ ] 膨胀、腐蚀
-  - [ ] 开、闭
+  - [x] 膨胀、腐蚀
+  - [x] 开、闭
   - [ ] 形态学重构、分水岭算法
 
 
@@ -52,6 +53,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 showResponseTime() don't work well
 
 two image don't work well
+
+图像缩放旋转的时候算入透明度
 
 
 

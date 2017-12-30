@@ -266,22 +266,22 @@ QImage *F_resize_linear(QImage *image, int width, int height)
                     g = qGreen(bits[index]);
                     b = qBlue(bits[index]);
                 } else {
-                    r = left_y * qRed(bits[index]) + right_y * qRed(bits[index + oldWidth]);
-                    g = left_y * qGreen(bits[index]) + right_y * qGreen(bits[index + oldWidth]);
-                    b = left_y * qBlue(bits[index]) + right_y * qBlue(bits[index + oldWidth]);
+                    r = left_y * qRed(bits[index]) * qAlpha(bits[index]) + right_y * qRed(bits[index + oldWidth]) * qAlpha(bits[index+oldWidth]);
+                    g = left_y * qGreen(bits[index]) * qAlpha(bits[index]) + right_y * qGreen(bits[index + oldWidth]) * qAlpha(bits[index+oldWidth]);
+                    b = left_y * qBlue(bits[index]) * qAlpha(bits[index]) + right_y * qBlue(bits[index + oldWidth]) * qAlpha(bits[index+oldWidth]);
                 }
             } else {
-                if (y == height - 1) {
-                    r = left_x * qRed(bits[index]) + right_x * qRed(bits[index + 1]);
-                    g = left_x * qGreen(bits[index]) + right_x * qGreen(bits[index + 1]);
-                    b = left_x * qBlue(bits[index]) + right_x * qBlue(bits[index + 1]);
+                if (y == height - 1 || !qAlpha(bits[index])) {
+                    r = left_x * qRed(bits[index]) * qAlpha(bits[index]) + right_x * qRed(bits[index + 1]) * qAlpha(bits[index+1]);
+                    g = left_x * qGreen(bits[index]) * qAlpha(bits[index]) + right_x * qGreen(bits[index + 1]) * qAlpha(bits[index+1]);
+                    b = left_x * qBlue(bits[index]) * qAlpha(bits[index]) + right_x * qBlue(bits[index + 1]) * qAlpha(bits[index+1]);
                 } else {
-                    r = left_y * (left_x * qRed(bits[index]) + right_x * qRed(bits[index + 1]))
-                            + right_y * (left_x * qRed(bits[index + oldWidth]) + right_x * qRed(bits[index + oldWidth + 1]));
-                    g = left_y * (left_x * qGreen(bits[index]) + right_x * qGreen(bits[index + 1]))
-                            + right_y * (left_x * qGreen(bits[index + oldWidth]) + right_x * qGreen(bits[index + oldWidth + 1]));
+                    r = left_y * (left_x * qRed(bits[index]) * qAlpha(bits[index]) + right_x * qRed(bits[index + 1]))
+                            + right_y * (left_x * qRed(bits[index + oldWidth]) * qAlpha(bits[index]) + right_x * qRed(bits[index + oldWidth + 1])) * qAlpha(bits[index+oldWidth+1]);
+                    g = left_y * (left_x * qGreen(bits[index]) * qAlpha(bits[index]) + right_x * qGreen(bits[index + 1]))
+                            + right_y * (left_x * qGreen(bits[index + oldWidth]) * qAlpha(bits[index]) + right_x * qGreen(bits[index + oldWidth + 1])) * qAlpha(bits[index+oldWidth+1]);
                     b = left_y * (left_x * qBlue(bits[index]) + right_x * qBlue(bits[index + 1]))
-                            + right_y * (left_x * qBlue(bits[index + oldWidth]) + right_x * qBlue(bits[index + oldWidth + 1]));
+                            + right_y * (left_x * qBlue(bits[index + oldWidth]) * qAlpha(bits[index]) + right_x * qBlue(bits[index + oldWidth + 1])) * qAlpha(bits[index+oldWidth+1]);
                 }
             }
 
