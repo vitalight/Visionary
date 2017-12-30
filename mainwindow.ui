@@ -182,6 +182,22 @@ border-color: rgb(0, 0, 0);</string>
      <string/>
     </property>
    </widget>
+   <widget class="QSlider" name="horizontalSlider">
+    <property name="geometry">
+     <rect>
+      <x>920</x>
+      <y>40</y>
+      <width>240</width>
+      <height>25</height>
+     </rect>
+    </property>
+    <property name="maximum">
+     <number>255</number>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Horizontal</enum>
+    </property>
+   </widget>
    <zorder>rightPanel</zorder>
    <zorder>mouseLocation</zorder>
    <zorder>colorBar</zorder>
@@ -191,6 +207,7 @@ border-color: rgb(0, 0, 0);</string>
    <zorder>whitebg</zorder>
    <zorder>tip</zorder>
    <zorder>histogramArea</zorder>
+   <zorder>horizontalSlider</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -441,7 +458,7 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionadjustHSI">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>HSI调节</string>
@@ -449,7 +466,7 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionadjustGradation">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>色阶调整</string>

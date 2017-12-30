@@ -18,9 +18,13 @@ enum F_Channel{F_R, F_G, F_B};
 enum F_ScaleAlgo{F_NEAREST, F_LINEAR};
 enum F_DetectEdgeAlgo{F_SOBEL, F_LAPLACIAN, F_CANNY};
 
-struct F_HSI
+struct F_HSB
 {
-    double h, s, i;
+    double h, s, b;
+    F_HSB(double h_, double s_, double b_)
+        : h(h_), s(s_), b(b_)
+    {
+    }
 };
 
 double F_responseTime();
@@ -35,9 +39,9 @@ QImage *F_seperation(QImage *image, F_Channel channel);
 QImage *F_decolor(QImage *image);
 
 // 色相/饱和度/亮度调节
-F_HSI F_RGB2HSI(QRgb rgb);
-QRgb F_HSI2RGB(F_HSI hsi);
-QImage *F_changeHSI(QImage *image);
+F_HSB F_RGB2HSB(QRgb rgb);
+QRgb F_HSB2RGB(F_HSB hsi);
+QImage *F_changeHSB(QImage *image);
 
 // 色阶调整(选做)
 

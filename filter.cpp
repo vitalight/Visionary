@@ -91,45 +91,75 @@ QImage *F_decolor(QImage *image)
 }
 
 // 色相/饱和度/亮度调节
-// [test] none
-#if 0
-F_HSI F_RGB2HSI(QRgb rgb)
+F_HSB F_RGB2HSB(QRgb rgb)
 {
-    // is rgb scaled to 1?
-    return F_HSI{1, 1, 1};
-}
-#endif
+    int rgbR = qRed(rgb),
+        rgbG = qGreen(rgb),
+        rgbB = qBlue(rgb),
+        maxVal = max(max(rgbR, rgbG), rgbB),
+        minVal = min(min(rgbR, rgbG), rgbB);
 
-// [test] none
-#if 0
-QRgb F_HSI2RGB(F_HSI hsi)
+    double hsbB = maxVal/255.0f,
+           hsbS = maxVal==0 ? 0 : (maxVal-minVal) / (double)maxVal,
+           hsbH = 0;
+
+    if (maxVal == rgbR && rgbG >= rgbB) {
+        hsbH = (rgbG - rgbB) * 60.0f / (maxVal - minVal);
+    } else if (maxVal == rgbR && rgbG < rgbB) {
+        hsbH = (rgbG - rgbB) * 60.0f / (maxVal - minVal) + 360;
+    } else if (maxVal == rgbG) {
+        hsbH = (rgbB - rgbR) * 60.0f / (maxVal - minVal) + 120;
+    } else if (maxVal == rgbB) {
+        hsbH = (rgbR - rgbG) * 60.0f / (maxVal - minVal) + 240;
+    }
+
+    return F_HSB(hsbH, hsbS, hsbB);
+}
+
+// [input] 0~360, 0~1, 0~1
+QRgb F_HSB2RGB(F_HSB hsb)
 {
-    double hue = hsi.h, saturation = hsi.s, intensity = hsi.i;
     double r, g, b;
+    int i = (int)(hsb.h/60) % 6;
+    double f = (hsb.h/60)-i,
+           p = hsb.b * (1 - hsb.s),
+           q = hsb.b * (1 - f * hsb.s),
+           t = hsb.b * (1 - (1 - f) * hsb.s);
 
-    double pi = PI;
-    double otz = 2*pi / 3;
-    if (hue>=0&&hue<=otz)
-    {
-        r = intensity*(1+(saturation*cos(hue))/(cos(pi/3.0-hue)));
-        b = intensity*(1-saturation);
-        g = 3*intensity - (b+r);
+    switch(i) {
+    case 0:
+        r = hsb.b;
+        g = t;
+        b = p;
+        break;
+    case 1:
+        r = q;
+        g = hsb.b;
+        b = p;
+        break;
+    case 2:
+        r = p;
+        g = hsb.b;
+        b = t;
+        break;
+    case 3:
+        r = p;
+        g = q;
+        b = hsb.b;
+        break;
+    case 4:
+        r = t;
+        g = p;
+        b = hsb.b;
+        break;
+    case 5:
+        r = hsb.b;
+        g = p;
+        b = q;
+        break;
     }
-    else if (hue>=otz && hue<2*otz)
-    {
-        r = intensity*(1-saturation);
-        g = intensity*(1+(saturation*cos(hue-otz))/(cos(pi-hue)));
-        b = 3*intensity-(r+g);
-    }
-    else
-    {
-        g = intensity*(1-saturation);
-        b = intensity*(1+(saturation*cos(hue-otz*2))/(cos(5*pi/6-hue)));
-        r = 3*intensity-(g+b);
-    }
-    return qRgb(r, g, b);
+    return qRgb(r*255, g*255, b*255);
 }
-#endif
 
 QImage *F_changeHSI(QImage *image);
 

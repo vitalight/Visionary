@@ -495,3 +495,14 @@ void MainWindow::on_actionShowHistogram_toggled(bool arg1)
     ui->histogramArea->setVisible(arg1);
     updateHistogram();
 }
+
+void MainWindow::on_actionadjustHSI_triggered()
+{
+
+}
+
+void MainWindow::on_horizontalSlider_sliderReleased()
+{
+
+}
+

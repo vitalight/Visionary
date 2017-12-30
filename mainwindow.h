@@ -107,6 +107,10 @@ private slots:
 
     void on_actionShowHistogram_toggled(bool arg1);
 
+    void on_horizontalSlider_sliderReleased();
+
+    void on_actionadjustHSI_triggered();
+
 private:
     Ui::MainWindow *ui;
 
