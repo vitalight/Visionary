@@ -54,6 +54,10 @@ QImage *F_binarization_double(QImage *image, int threshold_low, int threshold_hi
  * 3. 代数与几何操作
 ****************************************************************/
 // 加、减、乘、剪裁
+QImage *F_add(QImage *image1, QImage *image2);
+QImage *F_minus(QImage *image1, QImage *image2);
+QImage *F_times(QImage *image1, QImage *image2);
+QImage *F_cut(QImage *image, int x_start, int y_start, int width, int height);
 
 // 缩放（最近邻、双线性）
 QImage *F_resize_linear(QImage *image, int width, int height);
@@ -83,25 +87,19 @@ QImage *F_equalizeHistogram(QImage *image);
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/
 QImage *F_convolution(QImage *image, std::vector<std::vector<int>> kernel, int kernelSum);
-// 均值
+// 均值、中值、高斯、锐化（自做）
 QImage *F_blur_mean(QImage *image, int radius);
-// 中值
 QImage *F_blur_median(QImage *image, int radius);
-// 高斯
 QImage *F_blur_gaussian(QImage *image);
-// 锐化（自做）
 QImage *F_sharpen(QImage *image);
 
 /***************************************************************
  * 6. 边缘检测
 ****************************************************************/
-// Sobel
+// Sobel、拉普拉斯、canny
 QImage *F_detectEdge_sobel(QImage *image);
-// 拉普拉斯
 QImage *F_detectEdge_laplacian(QImage *image);
-// canny
 QImage *F_detectEdge_canny(QImage *image);
-
 QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo);
 
 /***************************************************************

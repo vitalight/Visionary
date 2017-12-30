@@ -9,6 +9,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [ ] 晶格化滤镜（自制）
   - [ ] 连续旋转改为累计旋转
   - [x] 双图片显示
+  - [x] 历史操作显示
 
 
 - 彩色图像处理
@@ -20,11 +21,12 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] Otus
   - [x] 手动调节：双阈值，实时
 - 代数与几何操作
-  - [ ] 加、减、乘、剪裁
+  - [x] 加、减、乘、剪裁
+  - [x] 缩放、旋转
 - 对比度调节
   - [ ] 线性及分段线性调整
   - [ ] 非线性调整：对数、指数（系数可调）
-  - [ ] 图像的直方图显示
+  - [x] 图像的直方图显示
   - [x] 直方图均衡化
 - 平滑滤波器（卷积核允许用户自定义）
   - [x] 均值

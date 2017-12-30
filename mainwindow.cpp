@@ -23,6 +23,8 @@ MainWindow::MainWindow(QWidget *parent) :
     qlabel->resize(ui->whitebg->geometry().width(), ui->whitebg->geometry().height());
     qlabel->setAlignment(Qt::AlignCenter);
     qlabel->setMouseTracking(true);                 // 鼠标跟踪
+
+    ui->histogramArea->setVisible(false);           // 默认隐藏直方图
 #ifndef __RELEASE__
     on_actionOpen_triggered();
 #endif
@@ -33,39 +35,29 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::mouseMoveEvent(QMouseEvent* event)
+QImage *MainWindow::getCurrentImage()
 {
-    if (!images[imageIndex].currentImage)
-        return;
-    QPoint p = event->pos();
-    static int x_minus = centralWidget()->geometry().x() +
-                         ui->whitebg->geometry().x() + ui->whitebg->geometry().width()/2,
-               y_minus = centralWidget()->geometry().y() +
-                         ui->whitebg->geometry().y() + ui->whitebg->geometry().height()/2;
-    int x = qBound(0, p.x() - x_minus + images[imageIndex].showWidth/2, images[imageIndex].showWidth-1),
-        y = qBound(0, p.y() - y_minus + images[imageIndex].showHeight/2, images[imageIndex].showHeight-1);
+    return images[imageIndex].currentImage;
+}
 
-    // 显示鼠标坐标
-    QString s = QString("Mouse Location: [%1, %2]")
-            .arg(x+1)
-            .arg(y+1);
-    ui->mouseLocation->setText(s);
+QImage *MainWindow::getAnotherImage()
+{
+    return images[1-imageIndex].currentImage;
+}
 
-    // 显示对应颜色
-    QRgb *bits = (QRgb*)images[imageIndex].thumbnail.constBits();
-    int r = qRed(bits[y*images[imageIndex].showWidth+x]),
-        g = qGreen(bits[y*images[imageIndex].showWidth+x]),
-        b = qBlue(bits[y*images[imageIndex].showWidth+x]);
-    s = QString("background-color:rgb(%1,%2,%3)").arg(r).arg(g).arg(b);
-    ui->colorBar->setStyleSheet(s);
-    s = QString("RGB:(%1,%2,%3)").arg(r).arg(g).arg(b);
-    ui->colorText->setText(s);
+void MainWindow::setCurrentImage(QImage *image)
+{
+    images[imageIndex].currentImage = image;
+}
 
+void MainWindow::setAnotherImage(QImage *image)
+{
+    images[1-imageIndex].currentImage = image;
 }
 
 void MainWindow::showResponseTime()
 {
-    QString s = QString("Response Time：%1s").arg(F_responseTime());
+    QString s = QString("响应时间：%1s").arg(F_responseTime());
     ui->responseTime->setText(s);
 }
 
@@ -75,19 +67,20 @@ void MainWindow::showImage_without_history(QImage *image)
         qlabel->clear();
         return;
     }
-    images[imageIndex].currentImage = image;
+    setCurrentImage(image);
     images[imageIndex].thumbnail = autoscale();
+    updateHistogram();
 
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
 }
 
 void MainWindow::showImage(QImage *image)
 {
-//    if (image->width() != images[imageIndex].currentImage->width() ||
-//            image->height() != images[imageIndex].currentImage->height()) {
+//    if (image->width() != getCurrentImage()->width() ||
+//            image->height() != getCurrentImage()->height()) {
 //        qlabel->resize(image->width(), image->height());
 //    }
-    if (images[imageIndex].currentImage == image)
+    if (getCurrentImage() == image)
     {
         return;
     }
@@ -118,20 +111,21 @@ void MainWindow::showImage(QImage *image)
         }
     }
 
-    images[imageIndex].currentImage = image;
+    setCurrentImage(image);
     images[imageIndex].thumbnail = autoscale();
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
+    updateHistogram();
     ui->actionRecover->setEnabled(true);
 }
 
 QImage MainWindow::autoscale()
 {
-    if (!images[imageIndex].currentImage)
+    if (!getCurrentImage())
     {
-        qDebug()<<"[error] autoscale: null images[imageIndex].currentImage";
+        qDebug()<<"[error] autoscale: null getCurrentImage()";
         exit(-1);
     }
-    QImage newImage= images[imageIndex].currentImage->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
+    QImage newImage= getCurrentImage()->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
                                           Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
     images[imageIndex].showWidth = newImage.width();
@@ -139,9 +133,43 @@ QImage MainWindow::autoscale()
     return newImage;
 }
 
+void MainWindow::showTip(QString str)
+{
+    ui->tip->setText(str);
+}
+
 /************************************************
- * Signal slot function for UI to call
+ * Signal slot function for UI operation
  ************************************************/
+void MainWindow::mouseMoveEvent(QMouseEvent* event)
+{
+    if (!getCurrentImage())
+        return;
+    QPoint p = event->pos();
+    static int x_minus = centralWidget()->geometry().x() +
+                         ui->whitebg->geometry().x() + ui->whitebg->geometry().width()/2,
+               y_minus = centralWidget()->geometry().y() +
+                         ui->whitebg->geometry().y() + ui->whitebg->geometry().height()/2;
+    int x = qBound(0, p.x() - x_minus + images[imageIndex].showWidth/2, images[imageIndex].showWidth-1),
+        y = qBound(0, p.y() - y_minus + images[imageIndex].showHeight/2, images[imageIndex].showHeight-1);
+
+    // 显示鼠标坐标
+    QString s = QString("鼠标位置：[%1, %2]")
+            .arg(x+1)
+            .arg(y+1);
+    ui->mouseLocation->setText(s);
+
+    // 显示对应颜色
+    QRgb *bits = (QRgb*)images[imageIndex].thumbnail.constBits();
+    int r = qRed(bits[y*images[imageIndex].showWidth+x]),
+        g = qGreen(bits[y*images[imageIndex].showWidth+x]),
+        b = qBlue(bits[y*images[imageIndex].showWidth+x]);
+    s = QString("background-color:rgb(%1,%2,%3)").arg(r).arg(g).arg(b);
+    ui->colorBar->setStyleSheet(s);
+    s = QString("RGB:(%1,%2,%3)").arg(r).arg(g).arg(b);
+    ui->colorText->setText(s);
+}
+
 void MainWindow::on_actionOpen_triggered()
 {
     // open file
@@ -171,22 +199,31 @@ void MainWindow::on_actionOpen_triggered()
     //qDebug()<<"Resize: "<<ui->whitebg->geometry().width()<<", "<<ui->whitebg->geometry().height();
     ui->menuFilter->setEnabled(true);
     ui->actionRecover->setEnabled(false);
+    showTip("已打开文件");
 }
-
 
 void MainWindow::on_switchButton_clicked()
 {
     imageIndex = 1-imageIndex;
-    showImage_without_history(images[imageIndex].currentImage);
-    ui->menuFilter->setEnabled(images[imageIndex].currentImage != NULL);
-    ui->actionRecover->setEnabled(images[imageIndex].currentImage != images[imageIndex].originalImage);
+    showImage_without_history(getCurrentImage());
+    ui->menuFilter->setEnabled(getCurrentImage() != NULL);
+    ui->actionRecover->setEnabled(getCurrentImage() != images[imageIndex].originalImage);
     ui->actionUndo->setEnabled(images[imageIndex].historyIndex > 0);
-    ui->actionRedo->setEnabled(images[imageIndex].historyIndex < images[imageIndex].historyImages.size()-1);
+    ui->actionRedo->setEnabled(images[imageIndex].historyIndex < (int)images[imageIndex].historyImages.size()-1);
+    showTip(QString("已切换到图层%1").arg(imageIndex+1));
 }
 
 void MainWindow::on_actionSwitch_triggered()
 {
     on_switchButton_clicked();
+}
+
+void MainWindow::on_actionCopyToAnother_triggered()
+{
+    imageIndex = 1-imageIndex;
+    showImage(getAnotherImage());
+    imageIndex = 1-imageIndex;
+    showTip("已复制到另一图层");
 }
 
 void MainWindow::on_actionRecover_triggered()
@@ -195,6 +232,7 @@ void MainWindow::on_actionRecover_triggered()
         showImage(images[imageIndex].originalImage);
         ui->actionRecover->setEnabled(false);
     }
+    showTip("已恢复原文件");
 }
 
 void MainWindow::on_actionUndo_triggered()
@@ -208,6 +246,7 @@ void MainWindow::on_actionUndo_triggered()
         ui->actionUndo->setEnabled(false);
     }
     ui->actionRedo->setEnabled(true);
+    showTip("上次操作：撤销");
 }
 
 void MainWindow::on_actionRedo_triggered()
@@ -217,6 +256,7 @@ void MainWindow::on_actionRedo_triggered()
         ui->actionRedo->setEnabled(false);
     }
     ui->actionUndo->setEnabled(true);
+    showTip("上次操作：重做");
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -231,7 +271,8 @@ void MainWindow::on_actionSave_as_triggered()
                                                     tr("保存为"),
                                                     "C:\\Users\\Administrator\\Desktop",
                                                     "Images (*.png *.bmp *.jpg *.jpeg)");
-    images[imageIndex].currentImage->save(fileName);
+    getCurrentImage()->save(fileName);
+    showTip("已另存文件");
 }
 
 void MainWindow::on_actionAbout_triggered()
@@ -240,10 +281,14 @@ void MainWindow::on_actionAbout_triggered()
                        "Visionary是一个强大的图像处理软件。");
 }
 
+/************************************************
+ * Signal slot function for image processing
+ ************************************************/
 void MainWindow::on_actionDecolor_triggered()
 {
-    showImage(F_decolor(images[imageIndex].currentImage));
+    showImage(F_decolor(getCurrentImage()));
     showResponseTime();
+    showTip("上次操作：去色");
 }
 
 //void MainWindow::on_actionBinarization_triggered()
@@ -255,120 +300,198 @@ void MainWindow::on_actionDecolor_triggered()
 //                                         1, &ok);
 //    if (!ok)
 //        return;
-//    showImage(F_binarization(images[imageIndex].currentImage, threshold));
+//    showImage(F_binarization(getCurrentImage(), threshold));
 //    showResponseTime();
 //}
 
 void MainWindow::on_actionBlur_triggered()
 {
-    showImage(F_blur_gaussian(images[imageIndex].currentImage));
+    showImage(F_blur_gaussian(getCurrentImage()));
     showResponseTime();
-}
-
-void MainWindow::on_actionSharpen_triggered()
-{
-    showImage(F_sharpen(images[imageIndex].currentImage));
-    showResponseTime();
-}
-
-void MainWindow::on_actionDilation_triggered()
-{
-    showImage(F_dilation(images[imageIndex].currentImage));
-    showResponseTime();
-}
-
-void MainWindow::on_actionErosion_triggered()
-{
-    showImage(F_erosion(images[imageIndex].currentImage));
-    showResponseTime();
-}
-
-void MainWindow::on_actionEqualizeHistogram_triggered()
-{
-    showImage(F_equalizeHistogram(images[imageIndex].currentImage));
-    showResponseTime();
-}
-
-void MainWindow::on_actionResize_triggered()
-{
-    showImage(F_resize(images[imageIndex].currentImage, F_NEAREST));
-    showResponseTime();
-}
-
-void MainWindow::on_actionResizeLinear_triggered()
-{
-    showImage(F_resize(images[imageIndex].currentImage, F_LINEAR));
-    showResponseTime();
-}
-
-void MainWindow::on_actionChannelSeperation_triggered()
-{
-    showImage(F_seperation(images[imageIndex].currentImage, F_R));
-    showResponseTime();
-}
-
-void MainWindow::on_actionSpinNearest_triggered()
-{
-    showImage(F_spin(images[imageIndex].currentImage, 45, F_NEAREST));
-    showResponseTime();
-}
-
-void MainWindow::on_actionSpinLinear_triggered()
-{
-    showImage(F_spin(images[imageIndex].currentImage, 45, F_LINEAR));
-    showResponseTime();
-}
-
-void MainWindow::on_actionDetectEdgeSobel_triggered()
-{
-    showImage(F_detectEdge(images[imageIndex].currentImage, F_SOBEL));
-    showResponseTime();
-}
-
-void MainWindow::on_actionDetectEdgeLaplacian_triggered()
-{
-    showImage(F_detectEdge(images[imageIndex].currentImage, F_LAPLACIAN));
-    showResponseTime();
-}
-
-void MainWindow::on_actionDetectEdgeCanny_triggered()
-{
-    showImage(F_detectEdge(images[imageIndex].currentImage, F_CANNY));
-    showResponseTime();
-}
-
-void MainWindow::on_actionOtsu_triggered()
-{
-    showImage(F_binarization_Otsu(images[imageIndex].currentImage));
-    showResponseTime();
-}
-
-void MainWindow::on_actionDoubleThreshold_triggered()
-{
-    showImage(F_binarization_double(images[imageIndex].currentImage, 100, 200));
-    showResponseTime();
+    showTip("上次操作：高斯模糊");
 }
 
 void MainWindow::on_actionBlurMean_triggered()
 {
-    showImage(F_blur_mean(images[imageIndex].currentImage, 5));
+    showImage(F_blur_mean(getCurrentImage(), 5));
     showResponseTime();
+    showTip("上次操作：中值模糊");
 }
 
 void MainWindow::on_actionBlurMedian_triggered()
 {
-    showImage(F_blur_median(images[imageIndex].currentImage, 3));
+    showImage(F_blur_median(getCurrentImage(), 3));
     showResponseTime();
+    showTip("上次操作：均值模糊");
+}
+
+void MainWindow::on_actionSharpen_triggered()
+{
+    showImage(F_sharpen(getCurrentImage()));
+    showResponseTime();
+    showTip("上次操作：锐化");
+}
+
+void MainWindow::on_actionDilation_triggered()
+{
+    showImage(F_dilation(getCurrentImage()));
+    showResponseTime();
+    showTip("上次操作：膨胀");
+}
+
+void MainWindow::on_actionErosion_triggered()
+{
+    showImage(F_erosion(getCurrentImage()));
+    showResponseTime();
+    showTip("上次操作：腐蚀");
+}
+
+void MainWindow::on_actionEqualizeHistogram_triggered()
+{
+    showImage(F_equalizeHistogram(getCurrentImage()));
+    showResponseTime();
+    showTip("上次操作：直方图均衡化");
+}
+
+void MainWindow::on_actionResize_triggered()
+{
+    showImage(F_resize(getCurrentImage(), F_NEAREST));
+    showResponseTime();
+    showTip("上次操作：最近邻缩放");
+}
+
+void MainWindow::on_actionResizeLinear_triggered()
+{
+    showImage(F_resize(getCurrentImage(), F_LINEAR));
+    showResponseTime();
+    showTip("上次操作：双线性插值缩放");
+}
+
+void MainWindow::on_actionChannelSeperation_triggered()
+{
+    showImage(F_seperation(getCurrentImage(), F_R));
+    showResponseTime();
+    showTip("上次操作：通道分离");
+}
+
+void MainWindow::on_actionSpinNearest_triggered()
+{
+    showImage(F_spin(getCurrentImage(), 45, F_NEAREST));
+    showResponseTime();
+    showTip("上次操作：最近邻旋转");
+}
+
+void MainWindow::on_actionSpinLinear_triggered()
+{
+    showImage(F_spin(getCurrentImage(), 45, F_LINEAR));
+    showResponseTime();
+    showTip("上次操作：双线性插值旋转");
+}
+
+void MainWindow::on_actionDetectEdgeSobel_triggered()
+{
+    showImage(F_detectEdge(getCurrentImage(), F_SOBEL));
+    showResponseTime();
+    showTip("上次操作：Sobel边缘检测");
+}
+
+void MainWindow::on_actionDetectEdgeLaplacian_triggered()
+{
+    showImage(F_detectEdge(getCurrentImage(), F_LAPLACIAN));
+    showResponseTime();
+    showTip("上次操作：拉普拉斯边缘检测");
+}
+
+void MainWindow::on_actionDetectEdgeCanny_triggered()
+{
+    showImage(F_detectEdge(getCurrentImage(), F_CANNY));
+    showResponseTime();
+    showTip("上次操作：Canny边缘检测");
+}
+
+void MainWindow::on_actionOtsu_triggered()
+{
+    showImage(F_binarization_Otsu(getCurrentImage()));
+    showResponseTime();
+    showTip("上次操作：大津算法二值化");
+}
+
+void MainWindow::on_actionDoubleThreshold_triggered()
+{
+    showImage(F_binarization_double(getCurrentImage(), 100, 200));
+    showResponseTime();
+    showTip("上次操作：双阈值二值化");
 }
 
 void MainWindow::on_actionMorphologicalOpen_triggered()
 {
-    showImage(F_open(images[imageIndex].currentImage));
+    showImage(F_open(getCurrentImage()));
     showResponseTime();
+    showTip("上次操作：开操作");
 }
 
 void MainWindow::on_actionMorphologicalClose_triggered()
 {
-    showImage(F_close(images[imageIndex].currentImage));
+    showImage(F_close(getCurrentImage()));
     showResponseTime();
+    showTip("上次操作：闭操作");
+}
+
+void MainWindow::on_actionAdd_triggered()
+{
+    if (!getAnotherImage()) {
+        QMessageBox::about(this, "非法操作",
+                           "另一图层暂无图像。");
+        return;
+    }
+    showImage(F_add(getCurrentImage(), getAnotherImage()));
+    showResponseTime();
+    showTip("上次操作：加操作");
+}
+
+void MainWindow::on_actionMinus_triggered()
+{
+    if (!getAnotherImage()) {
+        QMessageBox::about(this, "非法操作",
+                           "另一图层暂无图像。");
+        return;
+    }
+    showImage(F_minus(getCurrentImage(), getAnotherImage()));
+    showResponseTime();
+    showTip("上次操作：减操作");
+}
+
+void MainWindow::on_actionTimes_triggered()
+{
+    if (!getAnotherImage()) {
+        QMessageBox::about(this, "非法操作",
+                           "另一图层暂无图像。");
+        return;
+    }
+    showImage(F_times(getCurrentImage(), getAnotherImage()));
+    showResponseTime();
+    showTip("上次操作：乘操作");
+}
+
+void MainWindow::on_actionCut_triggered()
+{
+    showImage(F_cut(getCurrentImage(), 100, 100, 300, 400));
+    showResponseTime();
+    showTip("上次操作：裁剪");
+}
+
+void MainWindow::updateHistogram()
+{
+    if (showHistogram)
+    {
+        ui->histogramArea->histogram = F_getHistogram(getCurrentImage());
+        update();
+    }
+}
+
+void MainWindow::on_actionShowHistogram_toggled(bool arg1)
+{
+    showHistogram = arg1;
+    ui->histogramArea->setVisible(arg1);
+    updateHistogram();
 }

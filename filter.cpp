@@ -195,7 +195,6 @@ QImage *F_binarization_Otsu(QImage *image)
         }
     }
 
-    qDebug()<<"Threshold: "<<threshold;
     return F_binarization(image, threshold);
 }
 // 手动调节：双阈值，实时
@@ -223,10 +222,133 @@ QImage *F_binarization_double(QImage *image, int threshold_low, int threshold_hi
 /***************************************************************
  * 3. 代数与几何操作
 ****************************************************************/
-// 加、减、乘、剪裁
+// 加
+QImage *F_add(QImage *image1, QImage *image2)
+{
+    TIMMING_BEGIN;
+    int width1 = image1->width(), height1 = image1->height(),
+        width2 = image2->width(), height2 = image2->height(),
+        width = max(width1, width2),
+        height = max(height1, height2),
+        r, g, b;
+    QImage *newImage = new QImage(width, height, QImage::Format_ARGB32);
+    QRgb *bits1 = (QRgb*)image1->constBits(),
+         *bits2 = (QRgb*)image2->constBits(),
+         *newBits = (QRgb*)newImage->bits();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = (U_legal(width1, height1, x, y) ? qRed(bits1[y*width1+x]) : 0) +
+                   (U_legal(width2, height2, x, y) ? qRed(bits2[y*width2+x]) : 0);
+            g = (U_legal(width1, height1, x, y) ? qGreen(bits1[y*width1+x]) : 0) +
+                   (U_legal(width2, height2, x, y) ? qGreen(bits2[y*width2+x]) : 0);
+            b = (U_legal(width1, height1, x, y) ? qBlue(bits1[y*width1+x]) : 0) +
+                   (U_legal(width2, height2, x, y) ? qBlue(bits2[y*width2+x]) : 0);
+
+            U_colorBound(r, g, b);
+
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+// 减
+QImage *F_minus(QImage *image1, QImage *image2)
+{
+    TIMMING_BEGIN;
+    int width1 = image1->width(), height1 = image1->height(),
+        width2 = image2->width(), height2 = image2->height(),
+        width = max(width1, width2),
+        height = max(height1, height2),
+        r, g, b;
+    QImage *newImage = new QImage(width, height, QImage::Format_ARGB32);
+    QRgb *bits1 = (QRgb*)image1->constBits(),
+         *bits2 = (QRgb*)image2->constBits(),
+         *newBits = (QRgb*)newImage->bits();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = (U_legal(width1, height1, x, y) ? qRed(bits1[y*width1+x]) : 0) -
+                   (U_legal(width2, height2, x, y) ? qRed(bits2[y*width2+x]) : 0);
+            g = (U_legal(width1, height1, x, y) ? qGreen(bits1[y*width1+x]) : 0) -
+                   (U_legal(width2, height2, x, y) ? qGreen(bits2[y*width2+x]) : 0);
+            b = (U_legal(width1, height1, x, y) ? qBlue(bits1[y*width1+x]) : 0) -
+                   (U_legal(width2, height2, x, y) ? qBlue(bits2[y*width2+x]) : 0);
+
+            U_colorBound(r, g, b);
+
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+// 乘
+QImage *F_times(QImage *image1, QImage *image2)
+{
+    TIMMING_BEGIN;
+    int width1 = image1->width(), height1 = image1->height(),
+        width2 = image2->width(), height2 = image2->height(),
+        width = max(width1, width2),
+        height = max(height1, height2),
+        r, g, b;
+    QImage *newImage = new QImage(width, height, QImage::Format_ARGB32);
+    QRgb *bits1 = (QRgb*)image1->constBits(),
+         *bits2 = (QRgb*)image2->constBits(),
+         *newBits = (QRgb*)newImage->bits();
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = (U_legal(width1, height1, x, y) ? qRed(bits1[y*width1+x]) : 0) *
+                   (U_legal(width2, height2, x, y) ? qRed(bits2[y*width2+x]) : 0);
+            g = (U_legal(width1, height1, x, y) ? qGreen(bits1[y*width1+x]) : 0) *
+                   (U_legal(width2, height2, x, y) ? qGreen(bits2[y*width2+x]) : 0);
+            b = (U_legal(width1, height1, x, y) ? qBlue(bits1[y*width1+x]) : 0) *
+                   (U_legal(width2, height2, x, y) ? qBlue(bits2[y*width2+x]) : 0);
+
+            U_colorBound(r, g, b);
+
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+// 裁剪
+QImage *F_cut(QImage *image, int x_start, int y_start, int width, int height)
+{
+    TIMMING_BEGIN;
+    int oldWidth = image->width(), oldHeight = image->height(),
+        newWidth = min(oldWidth-x_start, width), newHeight = min(oldHeight-y_start, height);
+    QImage *newImage = new QImage(newWidth, newHeight, QImage::Format_ARGB32);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb*)newImage->bits();
+
+    for (int y = 0; y < newHeight; y++)
+    {
+        for (int x = 0; x < newWidth; x++)
+        {
+            newBits[y * newWidth + x] = bits[(y + y_start) * oldWidth + x + x_start];
+        }
+    }
+    TIMMING_END;
+    return newImage;
+}
 
 // 双线性插值缩放
-// [test] required
 QImage *F_resize_linear(QImage *image, int width, int height)
 {
     TIMMING_BEGIN;
@@ -294,7 +416,6 @@ QImage *F_resize_linear(QImage *image, int width, int height)
 }
 
 // 最近邻缩放
-// [test] required
 QImage *F_resize_nearest(QImage *image, int width, int height)
 {
     TIMMING_BEGIN;

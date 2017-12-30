@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QMouseEvent>
 #include <QLabel>
+#include <QPainter>
 #include <vector>
 
 //#define __RELEASE__
@@ -94,19 +95,37 @@ private slots:
 
     void on_actionSwitch_triggered();
 
+    void on_actionCopyToAnother_triggered();
+
+    void on_actionAdd_triggered();
+
+    void on_actionMinus_triggered();
+
+    void on_actionTimes_triggered();
+
+    void on_actionCut_triggered();
+
+    void on_actionShowHistogram_toggled(bool arg1);
+
 private:
     Ui::MainWindow *ui;
 
     QLabel *qlabel;
     ImageInfo images[2];
     int imageIndex = 0;
+    bool showHistogram = false;
 
-    //enum {V_NORMAL, V_GREY, V_BINARY} imageType;
+    QImage *getCurrentImage();
+    QImage *getAnotherImage();
+    void setCurrentImage(QImage *image);
+    void setAnotherImage(QImage *image);
 
     void showResponseTime();
     void showImage_without_history(QImage *image);
     void showImage(QImage *image);
     QImage autoscale();
+    void showTip(QString str);
+    void updateHistogram();
 
 protected:
     void mouseMoveEvent(QMouseEvent* event);

@@ -27,12 +27,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     filter.cpp \
-    util.cpp
+    util.cpp \
+    mypainter.cpp
 
 HEADERS += \
         mainwindow.h \
     filter.h \
-    util.h
+    util.h \
+    mypainter.h
 
 FORMS += \
         mainwindow.ui

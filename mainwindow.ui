@@ -42,7 +42,7 @@
      <string notr="true">color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>Response Time：0s</string>
+     <string>响应时间：0s</string>
     </property>
    </widget>
    <widget class="QLabel" name="rightPanel">
@@ -78,7 +78,7 @@ color: rgb(255, 255, 255);</string>
      <string notr="true">color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
-     <string>Mouse Location: [0, 0]</string>
+     <string>鼠标位置: [0, 0]</string>
     </property>
    </widget>
    <widget class="QLabel" name="colorBar">
@@ -91,7 +91,8 @@ color: rgb(255, 255, 255);</string>
      </rect>
     </property>
     <property name="styleSheet">
-     <string notr="true">background-color: rgb(255, 255, 255);</string>
+     <string notr="true">background-color: rgb(255, 255, 255);
+border-color: rgb(255, 255, 255);</string>
     </property>
     <property name="text">
      <string/>
@@ -146,6 +147,41 @@ border-color: rgb(0, 0, 0);</string>
      <string/>
     </property>
    </widget>
+   <widget class="QLabel" name="tip">
+    <property name="geometry">
+     <rect>
+      <x>920</x>
+      <y>540</y>
+      <width>171</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string>暂无操作</string>
+    </property>
+   </widget>
+   <widget class="MyPainter" name="histogramArea">
+    <property name="geometry">
+     <rect>
+      <x>920</x>
+      <y>290</y>
+      <width>240</width>
+      <height>240</height>
+     </rect>
+    </property>
+    <property name="mouseTracking">
+     <bool>true</bool>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">background-color: rgb(255, 255, 255);</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
    <zorder>rightPanel</zorder>
    <zorder>mouseLocation</zorder>
    <zorder>colorBar</zorder>
@@ -153,6 +189,8 @@ border-color: rgb(0, 0, 0);</string>
    <zorder>colorText</zorder>
    <zorder>switchButton</zorder>
    <zorder>whitebg</zorder>
+   <zorder>tip</zorder>
+   <zorder>histogramArea</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -183,6 +221,7 @@ border-color: rgb(0, 0, 0);</string>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
     <addaction name="actionSwitch"/>
+    <addaction name="actionCopyToAnother"/>
    </widget>
    <widget class="QMenu" name="menuFilter">
     <property name="enabled">
@@ -204,6 +243,7 @@ border-color: rgb(0, 0, 0);</string>
      <property name="title">
       <string>对比度调节</string>
      </property>
+     <addaction name="actionShowHistogram"/>
      <addaction name="actionEqualizeHistogram"/>
     </widget>
     <widget class="QMenu" name="menuSmoothFilter">
@@ -219,15 +259,18 @@ border-color: rgb(0, 0, 0);</string>
      <property name="geometry">
       <rect>
        <x>590</x>
-       <y>224</y>
+       <y>239</y>
        <width>182</width>
-       <height>174</height>
+       <height>246</height>
       </rect>
      </property>
      <property name="title">
       <string>代数几何操作</string>
      </property>
      <addaction name="actionAdd"/>
+     <addaction name="actionMinus"/>
+     <addaction name="actionTimes"/>
+     <addaction name="actionCut"/>
      <addaction name="actionResize"/>
      <addaction name="actionResizeLinear"/>
      <addaction name="actionSpinNearest"/>
@@ -419,7 +462,7 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionAdd">
    <property name="enabled">
-    <bool>false</bool>
+    <bool>true</bool>
    </property>
    <property name="text">
     <string>加操作</string>
@@ -498,8 +541,46 @@ border-color: rgb(0, 0, 0);</string>
     <string>Return</string>
    </property>
   </action>
+  <action name="actionCopyToAnother">
+   <property name="text">
+    <string>拷贝图层</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+G</string>
+   </property>
+  </action>
+  <action name="actionMinus">
+   <property name="text">
+    <string>减操作</string>
+   </property>
+  </action>
+  <action name="actionTimes">
+   <property name="text">
+    <string>乘操作</string>
+   </property>
+  </action>
+  <action name="actionCut">
+   <property name="text">
+    <string>裁剪</string>
+   </property>
+  </action>
+  <action name="actionShowHistogram">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>显示直方图</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>MyPainter</class>
+   <extends>QLabel</extends>
+   <header location="global">mypainter.h</header>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>
