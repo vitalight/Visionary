@@ -140,7 +140,7 @@ F_HSB F_RGB2HSB(QRgb rgb)
 // [input] 0~360, 0~1, 0~1
 QRgb F_HSB2RGB(F_HSB hsb)
 {
-    double r, g, b;
+    double r = 0, g = 0, b = 0;
     int i = (int)(hsb.h/60) % 6;
     double f = (hsb.h/60)-i,
            p = hsb.b * (1 - hsb.s),
@@ -1613,6 +1613,57 @@ QImage *F_skeletonReconstruct(QImage *image)
     return newImage;
 }
 // 二值形态学重构
+QImage *F_reconstruct(QImage *marker, QImage *mask)
+{
+    TIMMING_BEGIN;
+    Q_ASSERT(marker->size() == mask->size());
+
+    QImage *newImage = new QImage(*marker);
+    QRgb *maskBits = (QRgb*)mask->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    F_Kernel_i kernel = {{0, 1, 0},
+                         {1, 1, 1},
+                         {0, 1, 0}};
+    int halfSize = kernel.size()/2,
+        width = marker->width(), height = marker->height(),
+        index, r, g, b;
+    bool changed = true;
+
+    while (changed) {
+        changed = false;
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                r = 0;
+                g = 0;
+                b = 0;
+                for (int i = -halfSize; i <= halfSize; i++) {
+                    for (int j = -halfSize; j <= halfSize; j++) {
+                        if (!kernel[i+halfSize][j+halfSize])
+                            continue;
+                        index = qBound(0, x+j, width-1)
+                                + width * qBound(0, y+i, height-1);
+                        r = r > qRed(newBits[index]) ? r : qRed(newBits[index]);
+                        g = g > qGreen(newBits[index]) ? g : qGreen(newBits[index]);
+                        b = b > qBlue(newBits[index]) ? b : qBlue(newBits[index]);
+                    }
+                }
+
+                r = min(r, qRed(maskBits[y*width+x]));
+                g = min(r, qGreen(maskBits[y*width+x]));
+                b = min(r, qBlue(maskBits[y*width+x]));
+
+                if (qRed(newBits[y*width+x]) != r ||
+                    qGreen(newBits[y*width+x]) != g ||
+                    qBlue(newBits[y*width+x]) != b) {
+                    changed = true;
+                    newBits[y*width+x] = qRgb(r,g,b);
+                }
+            }
+        }
+    }
+    TIMMING_END;
+    return newImage;
+}
 
 /***************************************************************
  * 9. 灰度数学形态学

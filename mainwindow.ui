@@ -308,6 +308,7 @@ border-color: rgb(0, 0, 0);</string>
     <addaction name="actionRecover"/>
     <addaction name="actionUndo"/>
     <addaction name="actionRedo"/>
+    <addaction name="separator"/>
     <addaction name="actionSwitch"/>
     <addaction name="actionCopyToAnother"/>
    </widget>
@@ -373,11 +374,14 @@ border-color: rgb(0, 0, 0);</string>
      <addaction name="actionDilation"/>
      <addaction name="actionMorphologicalOpen"/>
      <addaction name="actionMorphologicalClose"/>
+     <addaction name="separator"/>
      <addaction name="actionThining"/>
      <addaction name="actionThickening"/>
      <addaction name="actionDistanceTransform"/>
      <addaction name="actionSkeletonize"/>
      <addaction name="actionSkeletonReconstruct"/>
+     <addaction name="separator"/>
+     <addaction name="actionReconstruct"/>
     </widget>
     <widget class="QMenu" name="menuDetectEdge">
      <property name="title">
@@ -472,7 +476,7 @@ border-color: rgb(0, 0, 0);</string>
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>重做</string>
+    <string>恢复</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+Y</string>
@@ -502,7 +506,7 @@ border-color: rgb(0, 0, 0);</string>
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>恢复</string>
+    <string>还原</string>
    </property>
   </action>
   <action name="actionBlur">
@@ -694,6 +698,11 @@ border-color: rgb(0, 0, 0);</string>
   <action name="actionSkeletonReconstruct">
    <property name="text">
     <string>骨架重构</string>
+   </property>
+  </action>
+  <action name="actionReconstruct">
+   <property name="text">
+    <string>形态学重构</string>
    </property>
   </action>
  </widget>

@@ -131,6 +131,8 @@ private slots:
 
     void on_actionSkeletonReconstruct_triggered();
 
+    void on_actionReconstruct_triggered();
+
 private:
     Ui::MainWindow *ui;
 

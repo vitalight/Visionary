@@ -272,7 +272,7 @@ void MainWindow::on_actionRecover_triggered()
         showImage(images[imageIndex].originalImage);
         ui->actionRecover->setEnabled(false);
     }
-    showTip("已恢复原文件");
+    showTip("已还原文件");
 }
 
 void MainWindow::on_actionUndo_triggered()
@@ -296,7 +296,7 @@ void MainWindow::on_actionRedo_triggered()
         ui->actionRedo->setEnabled(false);
     }
     ui->actionUndo->setEnabled(true);
-    showTip("上次操作：重做");
+    showTip("上次操作：恢复");
 }
 
 void MainWindow::on_actionExit_triggered()
@@ -521,7 +521,7 @@ void MainWindow::on_actionTimes_triggered()
 
 void MainWindow::on_actionCut_triggered()
 {
-    showImage(F_cut(getCurrentImage(), 100, 100, 300, 400));
+    showImage(F_cut(getCurrentImage(), 0, 0, 231, 209));
     showResponseTime();
     showTip("上次操作：裁剪");
 }
@@ -596,4 +596,11 @@ void MainWindow::on_actionSkeletonReconstruct_triggered()
     showImage(F_skeletonReconstruct(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：骨架重构");
+}
+
+void MainWindow::on_actionReconstruct_triggered()
+{
+    showImage(F_reconstruct(getCurrentImage(), getAnotherImage()));
+    showResponseTime();
+    showTip("上次操作：形态学重构");
 }

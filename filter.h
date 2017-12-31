@@ -137,6 +137,7 @@ QImage *F_distance(QImage *image);
 QImage *F_skeletonize(QImage *image);
 QImage *F_skeletonReconstruct(QImage *image);
 // 二值形态学重构
+QImage *F_reconstruct(QImage *marker, QImage *mask);
 
 /***************************************************************
  * 9. 灰度数学形态学
