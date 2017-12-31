@@ -1386,7 +1386,7 @@ QImage *F_thickening(QImage *image, F_Kernel_i kernel)
     return F_union(image, F_hitAndMiss(image, kernel));
 }
 // 优化显示
-QImage *F_improve(QImage *image)
+QImage *F_constrastStretch(QImage *image)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
@@ -1425,6 +1425,9 @@ QImage *F_distance(QImage *image)
 {
     TIMMING_BEGIN;
     F_Kernel_i kernel = U_getFlatKernel_i(3);
+//    F_Kernel_i kernel = {{0, 1, 0},
+//                         {1, 1, 1},
+//                         {0, 1, 0}};
     QImage *newImage = F_NEW_IMAGE(image),
            *retImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
@@ -1481,19 +1484,44 @@ QImage *F_distance(QImage *image)
 QImage *F_skeletonize(QImage *image)
 {
     TIMMING_BEGIN;
-    QImage *newImage = F_distance(image);
-    QRgb *newBits = (QRgb *)newImage->bits();
+    QImage *disimage = F_constrastStretch(F_distance(image)),
+           *newImage = F_NEW_IMAGE(disimage);
+    QRgb *bits = (QRgb *)disimage->constBits(),
+         *newBits = (QRgb*)newImage->bits();
     int width = newImage->width(), height = newImage->height();
 
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
-            if (qRed(newBits[y*width+x]) % 2 != 1)
+            if (!qRed(bits[y*width+x]) || x==0 || x==width-1 || y==0 || y==height-1) {
+                newBits[y*width+x] = qRgb(0, 0, 0);
+                continue;
+            }
+            int index = y*width+x,
+                color00 = qRed(bits[index-width-1]),
+                color01 = qRed(bits[index-width]),
+                color02 = qRed(bits[index-width+1]),
+                color10 = qRed(bits[index-1]),
+                color11 = qRed(bits[index]),
+                color12 = qRed(bits[index+1]),
+                color20 = qRed(bits[index+width-1]),
+                color21 = qRed(bits[index+width]),
+                color22 = qRed(bits[index+width+1]);
+            if ((color11>=color00 && color11>=color22 && 2*color11 !=color00+color22) ||
+                (color11>=color01 && color11>=color21 && 2*color11 !=color01+color21) ||
+                (color11>=color02 && color11>=color20 && 2*color11 !=color02+color20) ||
+                (color11>=color10 && color11>=color12 && 2*color11 !=color10+color12)) {
+                //qDebug()<<QString("Info: index=%1, width=%2").arg(index).arg(width);
+                //qDebug()<<QString("(%1,%2): r11:%3, r02:%4, r20:%5").arg(x).arg(y).arg(color11).arg(color02).arg(color20);
+                newBits[y*width+x] = qRgb(color11, color11, color11);
+            }
+            else
                 newBits[y*width+x] = qRgb(0, 0, 0);
         }
     }
 
+    //free(disimage);
     TIMMING_END;
     return newImage;
 }

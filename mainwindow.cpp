@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
 #ifndef __RELEASE__
     on_actionOpen_triggered();
     on_actionOtsu_triggered();
-    on_actionDistanceTransform_triggered();
+    //on_actionSkeletonize_triggered();
 #endif
 }
 
@@ -127,8 +127,9 @@ QImage MainWindow::autoscale()
         qDebug()<<"[error] autoscale: null getCurrentImage()";
         exit(-1);
     }
+    // Qt::SmoothTransformation
     QImage newImage= getCurrentImage()->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
-                                          Qt::KeepAspectRatio, Qt::SmoothTransformation);
+                                          Qt::KeepAspectRatio, Qt::FastTransformation);
 
     images[imageIndex].showWidth = newImage.width();
     images[imageIndex].showHeight = newImage.height();
@@ -188,10 +189,11 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
     int x = qBound(0, p.x() - x_minus + images[imageIndex].showWidth/2, images[imageIndex].showWidth-1),
         y = qBound(0, p.y() - y_minus + images[imageIndex].showHeight/2, images[imageIndex].showHeight-1);
 
+
     // 显示鼠标坐标
     QString s = QString("鼠标位置：[%1, %2]")
-            .arg(x+1)
-            .arg(y+1);
+            .arg(x*images[imageIndex].currentImage->width()/images[imageIndex].showWidth)
+            .arg(y*images[imageIndex].currentImage->height()/images[imageIndex].showHeight);
     ui->mouseLocation->setText(s);
 
     // 显示对应颜色
@@ -214,7 +216,7 @@ void MainWindow::on_actionOpen_triggered()
                                                     "F:/MyCodes/Visionary/images",
                                                     "Images (*.png *.bmp *.jpg *.jpeg *.gif)");
 #else
-    QString fileName = "F:/MyCodes/Visionary/images/distance-test.png";
+    QString fileName = "F:/MyCodes/Visionary/images/distance-test.gif";
 #endif
     if (fileName == "" || fileName == NULL) {
         return;
@@ -567,14 +569,14 @@ void MainWindow::on_actionThickening_triggered()
 
 void MainWindow::on_actionDistanceTransform_triggered()
 {
-    showImage(F_improve(F_distance(getCurrentImage())));
+    showImage(F_constrastStretch(F_distance(getCurrentImage())));
     showResponseTime();
     showTip("上次操作：距离变换");
 }
 
 void MainWindow::on_actionSkeletonize_triggered()
 {
-    showImage(F_improve(F_skeletonize(getCurrentImage())));
+    showImage(F_skeletonize(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：骨架");
 }
