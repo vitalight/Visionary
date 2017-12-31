@@ -5,9 +5,13 @@
 #include <QMouseEvent>
 #include <QLabel>
 #include <QPainter>
+#include <QComboBox>
+#include <QDialogButtonBox>
+#include <QSpinBox>
+
 #include <vector>
 
-#define __RELEASE__
+//#define __RELEASE__
 #define HISTORY_MAX (8)
 #define TAB_OFFSET (28)
 
@@ -35,6 +39,12 @@ public:
     ~MainWindow();
 
 private slots:
+    void ui_clear();
+    void ui_recover();
+    void ui_change_val1(int val);
+    void ui_change_val2(int val);
+    void ui_change_val3(int val);
+
     void on_actionOpen_triggered();
 
     void on_actionDecolor_triggered();
@@ -61,6 +71,7 @@ private slots:
 
     void on_actionResizeLinear_triggered();
 
+    void slot_channelSeperation();
     void on_actionChannelSeperation_triggered();
 
     void on_actionSpinNearest_triggered();
@@ -105,19 +116,9 @@ private slots:
 
     void on_actionShowHistogram_toggled(bool arg1);
 
-    void on_actionadjustHSI_triggered();
-
-    void on_slider1_sliderReleased();
-
-    void on_slider2_sliderReleased();
-
-    void on_slider3_sliderReleased();
-
-    void on_slider1_sliderMoved(int position);
-
-    void on_slider2_sliderMoved(int position);
-
-    void on_slider3_sliderMoved(int position);
+    void slot_adjustHSB();
+    void slot_adjustHSB_preview();
+    void on_actionadjustHSB_triggered();
 
     void on_actionThining_triggered();
 
@@ -140,6 +141,12 @@ private:
     ImageInfo images[2];
     int imageIndex = 0;
     bool showHistogram = false;
+    int ui_val1 = 0,
+        ui_val2 = 0,
+        ui_val3 = 0;
+    std::vector<QWidget *> widgetList;
+
+    QDialogButtonBox *createButtonBox();
 
     QImage *getCurrentImage();
     QImage *getAnotherImage();
@@ -147,12 +154,12 @@ private:
     void setAnotherImage(QImage *image);
 
     void showResponseTime();
+    void showThumbnail(QImage *image);
     void showImage_without_history(QImage *image);
     void showImage(QImage *image);
-    QImage autoscale();
+    QImage autoscale(QImage *image = NULL);
     void showTip(QString str);
     void updateHistogram();
-
 protected:
     void mouseMoveEvent(QMouseEvent* event);
 

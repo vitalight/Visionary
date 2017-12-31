@@ -15,9 +15,9 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 
 
 - 彩色图像处理
-  - [x] 三通道分离
-  - [x] 彩色  --》灰度
-  - [x] 色相/饱和度/亮度调节
+  - [x] 三通道分离 V
+  - [x] 彩色  -->灰度
+  - [x] 色相/饱和度/亮度调节 V
   - [ ] 色阶调整（选做）
 - 二值化
   - [x] Otus
@@ -45,19 +45,18 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] 距离变换
   - [x] 骨架
   - [x] 骨架重构
-  - [ ] 二值形态学重构
+  - [x] 二值形态学重构
 - 灰度数学形态学
   - [x] 膨胀、腐蚀
   - [x] 开、闭
-  - [ ] 形态学重构、分水岭算法
+  - [x] 形态学重构
+  - [ ] 分水岭算法
 
 
 
 ##　Underlying problem
 
 showResponseTime() don't work well
-
-two image don't work well
 
 图像缩放旋转的时候算入透明度
 

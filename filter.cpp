@@ -197,7 +197,7 @@ QImage *F_adjustHSB(QImage *image, int h_val, int s_val, int b_val)
             F_HSB hsb = F_RGB2HSB(bits[y*width+x]);
 
             // do something with fsb;
-            hsb.h = (int)(hsb.h+h_val+180) % 360;
+            hsb.h = (int)(hsb.h+h_val+360) % 360;
             hsb.s *= 1.0 + s_val/100.0;
             if (hsb.s>1)
                 hsb.s = 1;
@@ -1613,6 +1613,7 @@ QImage *F_skeletonReconstruct(QImage *image)
     return newImage;
 }
 // 二值形态学重构
+// [todo] incorrect
 QImage *F_reconstruct(QImage *marker, QImage *mask)
 {
     TIMMING_BEGIN;
@@ -1626,37 +1627,30 @@ QImage *F_reconstruct(QImage *marker, QImage *mask)
                          {0, 1, 0}};
     int halfSize = kernel.size()/2,
         width = marker->width(), height = marker->height(),
-        index, r, g, b;
+        index, r, rr;
     bool changed = true;
 
     while (changed) {
         changed = false;
         for (int x = 0; x < width; x++) {
             for (int y = 0; y < height; y++) {
-                r = 0;
-                g = 0;
-                b = 0;
+                index = y*width+x;
+                r = qRed(newBits[index]);
+                if (!r)
+                    continue;
+
                 for (int i = -halfSize; i <= halfSize; i++) {
                     for (int j = -halfSize; j <= halfSize; j++) {
-                        if (!kernel[i+halfSize][j+halfSize])
+                        if (!kernel[i+halfSize][j+halfSize] ||
+                            !U_legal(width, height, x+j+halfSize, y+i+halfSize))
                             continue;
-                        index = qBound(0, x+j, width-1)
-                                + width * qBound(0, y+i, height-1);
-                        r = r > qRed(newBits[index]) ? r : qRed(newBits[index]);
-                        g = g > qGreen(newBits[index]) ? g : qGreen(newBits[index]);
-                        b = b > qBlue(newBits[index]) ? b : qBlue(newBits[index]);
+                        index = (y+i)*width + x+j;
+                        rr = min(r, qRed(maskBits[index]));
+                        if (qRed(newBits[index]) < rr) {
+                            changed = true;
+                            newBits[index] = qRgb(rr, rr, rr);
+                        }
                     }
-                }
-
-                r = min(r, qRed(maskBits[y*width+x]));
-                g = min(r, qGreen(maskBits[y*width+x]));
-                b = min(r, qBlue(maskBits[y*width+x]));
-
-                if (qRed(newBits[y*width+x]) != r ||
-                    qGreen(newBits[y*width+x]) != g ||
-                    qBlue(newBits[y*width+x]) != b) {
-                    changed = true;
-                    newBits[y*width+x] = qRgb(r,g,b);
                 }
             }
         }
@@ -1668,4 +1662,9 @@ QImage *F_reconstruct(QImage *marker, QImage *mask)
 /***************************************************************
  * 9. 灰度数学形态学
 ****************************************************************/
-// 膨胀、腐蚀、开、闭、形态学重构、分水岭算法
+// 其余同#8
+// 分水岭算法
+QImage *F_watershed(QImage *image)
+{
+    return image;
+}

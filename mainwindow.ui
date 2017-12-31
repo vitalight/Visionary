@@ -152,7 +152,7 @@ border-color: rgb(0, 0, 0);</string>
      <rect>
       <x>920</x>
       <y>540</y>
-      <width>171</width>
+      <width>241</width>
       <height>16</height>
      </rect>
     </property>
@@ -182,88 +182,20 @@ border-color: rgb(0, 0, 0);</string>
      <string/>
     </property>
    </widget>
-   <widget class="QSlider" name="slider1">
+   <widget class="QWidget" name="verticalLayoutWidget">
     <property name="geometry">
      <rect>
       <x>920</x>
-      <y>40</y>
-      <width>240</width>
-      <height>25</height>
+      <y>20</y>
+      <width>241</width>
+      <height>231</height>
      </rect>
     </property>
-    <property name="maximum">
-     <number>360</number>
-    </property>
-    <property name="value">
-     <number>180</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QSlider" name="slider2">
-    <property name="geometry">
-     <rect>
-      <x>920</x>
-      <y>80</y>
-      <width>240</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="minimum">
-     <number>-100</number>
-    </property>
-    <property name="maximum">
-     <number>100</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QSlider" name="slider3">
-    <property name="geometry">
-     <rect>
-      <x>920</x>
-      <y>120</y>
-      <width>240</width>
-      <height>25</height>
-     </rect>
-    </property>
-    <property name="minimum">
-     <number>-100</number>
-    </property>
-    <property name="maximum">
-     <number>100</number>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="confirmButtom">
-    <property name="geometry">
-     <rect>
-      <x>920</x>
-      <y>170</y>
-      <width>100</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>确认</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="cancleButton">
-    <property name="geometry">
-     <rect>
-      <x>1060</x>
-      <y>170</y>
-      <width>100</width>
-      <height>30</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>取消</string>
-    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetNoConstraint</enum>
+     </property>
+    </layout>
    </widget>
    <zorder>rightPanel</zorder>
    <zorder>mouseLocation</zorder>
@@ -274,11 +206,7 @@ border-color: rgb(0, 0, 0);</string>
    <zorder>whitebg</zorder>
    <zorder>tip</zorder>
    <zorder>histogramArea</zorder>
-   <zorder>slider1</zorder>
-   <zorder>slider2</zorder>
-   <zorder>slider3</zorder>
-   <zorder>confirmButtom</zorder>
-   <zorder>cancleButton</zorder>
+   <zorder>verticalLayoutWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -325,7 +253,7 @@ border-color: rgb(0, 0, 0);</string>
      </property>
      <addaction name="actionChannelSeperation"/>
      <addaction name="actionDecolor"/>
-     <addaction name="actionadjustHSI"/>
+     <addaction name="actionadjustHSB"/>
      <addaction name="actionadjustGradation"/>
     </widget>
     <widget class="QMenu" name="menuAdjustContrast">
@@ -537,12 +465,12 @@ border-color: rgb(0, 0, 0);</string>
     <string>通道分离</string>
    </property>
   </action>
-  <action name="actionadjustHSI">
+  <action name="actionadjustHSB">
    <property name="enabled">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>HSI调节</string>
+    <string>HSB调节</string>
    </property>
   </action>
   <action name="actionadjustGradation">
