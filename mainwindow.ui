@@ -372,6 +372,10 @@ border-color: rgb(0, 0, 0);</string>
      <addaction name="actionDilation"/>
      <addaction name="actionMorphologicalOpen"/>
      <addaction name="actionMorphologicalClose"/>
+     <addaction name="actionThining"/>
+     <addaction name="actionThickening"/>
+     <addaction name="actionDistanceTransform"/>
+     <addaction name="actionSkeletonize"/>
     </widget>
     <widget class="QMenu" name="menuDetectEdge">
      <property name="title">
@@ -658,6 +662,26 @@ border-color: rgb(0, 0, 0);</string>
    </property>
    <property name="text">
     <string>显示直方图</string>
+   </property>
+  </action>
+  <action name="actionThining">
+   <property name="text">
+    <string>细化</string>
+   </property>
+  </action>
+  <action name="actionThickening">
+   <property name="text">
+    <string>粗化</string>
+   </property>
+  </action>
+  <action name="actionDistanceTransform">
+   <property name="text">
+    <string>距离变换</string>
+   </property>
+  </action>
+  <action name="actionSkeletonize">
+   <property name="text">
+    <string>骨架</string>
    </property>
   </action>
  </widget>

@@ -41,8 +41,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - 二值数学形态学（结构元允许用户自定义）
   - [x] 膨胀、腐蚀
   - [x] 开、闭
-  - [ ] 细化、粗化
-  - [ ] 距离变换
+  - [x] 细化、粗化
+  - [x] 距离变换
   - [ ] 骨架、骨架重构
   - [ ] 二值形态学重构
 - 灰度数学形态学

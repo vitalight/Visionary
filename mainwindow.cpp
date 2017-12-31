@@ -27,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->histogramArea->setVisible(false);           // 默认隐藏直方图
 #ifndef __RELEASE__
     on_actionOpen_triggered();
+    on_actionOtsu_triggered();
+    on_actionDistanceTransform_triggered();
 #endif
 }
 
@@ -158,17 +160,18 @@ void MainWindow::on_slider3_sliderReleased()
 
 void MainWindow::on_slider1_sliderMoved(int position)
 {
+    position++;
     //showImage(F_adjustHSB(images[imageIndex].originalImage, ui->slider1->value(), ui->slider2->value(), ui->slider3->value()));
 }
 
 void MainWindow::on_slider2_sliderMoved(int position)
 {
-
+    position++;
 }
 
 void MainWindow::on_slider3_sliderMoved(int position)
 {
-
+    position++;
 }
 /************************************************
  * Signal slot function for UI operation
@@ -209,9 +212,9 @@ void MainWindow::on_actionOpen_triggered()
     QString fileName = QFileDialog::getOpenFileName(this,
                                                     tr("打开图片"),
                                                     "F:/MyCodes/Visionary/images",
-                                                    "Images (*.png *.bmp *.jpg *.jpeg)");
+                                                    "Images (*.png *.bmp *.jpg *.jpeg *.gif)");
 #else
-    QString fileName = "F:/MyCodes/Visionary/images/standered.png";
+    QString fileName = "F:/MyCodes/Visionary/images/distance-test.png";
 #endif
     if (fileName == "" || fileName == NULL) {
         return;
@@ -541,3 +544,37 @@ void MainWindow::on_actionadjustHSI_triggered()
     showTip("上次操作：调整HSI");
 }
 
+
+void MainWindow::on_actionThining_triggered()
+{
+    F_Kernel_i kernel = {{0, 0, 0},
+                         {2, 1, 2},
+                         {1, 1, 1}};
+    showImage(F_thinning(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：细化");
+}
+
+void MainWindow::on_actionThickening_triggered()
+{
+    F_Kernel_i kernel = {{1, 1, 2},
+                         {1, 0, 2},
+                         {1, 2, 0}};
+    showImage(F_thickening(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：粗化");
+}
+
+void MainWindow::on_actionDistanceTransform_triggered()
+{
+    showImage(F_improve(F_distance(getCurrentImage())));
+    showResponseTime();
+    showTip("上次操作：距离变换");
+}
+
+void MainWindow::on_actionSkeletonize_triggered()
+{
+    showImage(F_improve(F_skeletonize(getCurrentImage())));
+    showResponseTime();
+    showTip("上次操作：骨架");
+}

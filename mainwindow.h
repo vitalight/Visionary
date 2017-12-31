@@ -7,7 +7,7 @@
 #include <QPainter>
 #include <vector>
 
-//#define __RELEASE__
+#define __RELEASE__
 #define HISTORY_MAX (8)
 #define TAB_OFFSET (28)
 
@@ -118,6 +118,14 @@ private slots:
     void on_slider2_sliderMoved(int position);
 
     void on_slider3_sliderMoved(int position);
+
+    void on_actionThining_triggered();
+
+    void on_actionThickening_triggered();
+
+    void on_actionDistanceTransform_triggered();
+
+    void on_actionSkeletonize_triggered();
 
 private:
     Ui::MainWindow *ui;
