@@ -131,10 +131,11 @@ QImage *F_hitAndMiss(QImage *image, F_Kernel_i kernel);
 QImage *F_thinning(QImage *image, F_Kernel_i kernel);
 QImage *F_thickening(QImage *image, F_Kernel_i kernel);
 // 距离变换
-QImage *F_constrastStretch(QImage *image);
+QImage *F_contrastStretch(QImage *image);
 QImage *F_distance(QImage *image);
 // 骨架、骨架重构
 QImage *F_skeletonize(QImage *image);
+QImage *F_skeletonReconstruct(QImage *image);
 // 二值形态学重构
 
 /***************************************************************

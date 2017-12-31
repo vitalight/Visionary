@@ -26,7 +26,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->histogramArea->setVisible(false);           // 默认隐藏直方图
 #ifndef __RELEASE__
-    on_actionOpen_triggered();
+    for (int i = 0; i<100; i++) {
+        on_actionOpen_triggered();
+    }
     on_actionOtsu_triggered();
     //on_actionSkeletonize_triggered();
 #endif
@@ -258,7 +260,8 @@ void MainWindow::on_actionSwitch_triggered()
 void MainWindow::on_actionCopyToAnother_triggered()
 {
     imageIndex = 1-imageIndex;
-    showImage(getAnotherImage());
+    QImage *newImage = new QImage(*getAnotherImage());
+    showImage(newImage);
     imageIndex = 1-imageIndex;
     showTip("已复制到另一图层");
 }
@@ -569,7 +572,7 @@ void MainWindow::on_actionThickening_triggered()
 
 void MainWindow::on_actionDistanceTransform_triggered()
 {
-    showImage(F_constrastStretch(F_distance(getCurrentImage())));
+    showImage(F_contrastStretch(F_distance(getCurrentImage())));
     showResponseTime();
     showTip("上次操作：距离变换");
 }
@@ -579,4 +582,18 @@ void MainWindow::on_actionSkeletonize_triggered()
     showImage(F_skeletonize(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：骨架");
+}
+
+void MainWindow::on_actionContrastStretch_triggered()
+{
+    showImage(F_contrastStretch(getCurrentImage()));
+    showResponseTime();
+    showTip("上次操作：对比度拉伸");
+}
+
+void MainWindow::on_actionSkeletonReconstruct_triggered()
+{
+    showImage(F_skeletonReconstruct(getCurrentImage()));
+    showResponseTime();
+    showTip("上次操作：骨架重构");
 }

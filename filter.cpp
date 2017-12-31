@@ -1386,7 +1386,7 @@ QImage *F_thickening(QImage *image, F_Kernel_i kernel)
     return F_union(image, F_hitAndMiss(image, kernel));
 }
 // 优化显示
-QImage *F_constrastStretch(QImage *image)
+QImage *F_contrastStretch(QImage *image)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
@@ -1424,10 +1424,10 @@ QImage *F_constrastStretch(QImage *image)
 QImage *F_distance(QImage *image)
 {
     TIMMING_BEGIN;
-    F_Kernel_i kernel = U_getFlatKernel_i(3);
-//    F_Kernel_i kernel = {{0, 1, 0},
-//                         {1, 1, 1},
-//                         {0, 1, 0}};
+//    F_Kernel_i kernel = U_getFlatKernel_i(3);
+    F_Kernel_i kernel = {{0, 1, 0},
+                         {1, 1, 1},
+                         {0, 1, 0}};
     QImage *newImage = F_NEW_IMAGE(image),
            *retImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
@@ -1484,7 +1484,7 @@ QImage *F_distance(QImage *image)
 QImage *F_skeletonize(QImage *image)
 {
     TIMMING_BEGIN;
-    QImage *disimage = F_constrastStretch(F_distance(image)),
+    QImage *disimage = F_distance(image),
            *newImage = F_NEW_IMAGE(disimage);
     QRgb *bits = (QRgb *)disimage->constBits(),
          *newBits = (QRgb*)newImage->bits();
@@ -1507,13 +1507,27 @@ QImage *F_skeletonize(QImage *image)
                 color12 = qRed(bits[index+1]),
                 color20 = qRed(bits[index+width-1]),
                 color21 = qRed(bits[index+width]),
-                color22 = qRed(bits[index+width+1]);
-            if ((color11>=color00 && color11>=color22 && 2*color11 !=color00+color22) ||
-                (color11>=color01 && color11>=color21 && 2*color11 !=color01+color21) ||
-                (color11>=color02 && color11>=color20 && 2*color11 !=color02+color20) ||
-                (color11>=color10 && color11>=color12 && 2*color11 !=color10+color12)) {
-                //qDebug()<<QString("Info: index=%1, width=%2").arg(index).arg(width);
-                //qDebug()<<QString("(%1,%2): r11:%3, r02:%4, r20:%5").arg(x).arg(y).arg(color11).arg(color02).arg(color20);
+                color22 = qRed(bits[index+width+1]),
+                count = 0;
+
+            if (color11>=color00)
+                count++;
+            if (color11>=color01)
+                count++;
+            if (color11>=color02)
+                count++;
+            if (color11>=color10)
+                count++;
+            if (color11>=color12)
+                count++;
+            if (color11>=color20)
+                count++;
+            if (color11>=color21)
+                count++;
+            if (color11>=color22)
+                count++;
+
+            if (count>7) {
                 newBits[y*width+x] = qRgb(color11, color11, color11);
             }
             else
@@ -1521,7 +1535,80 @@ QImage *F_skeletonize(QImage *image)
         }
     }
 
-    //free(disimage);
+    free(disimage);
+    TIMMING_END;
+    return newImage;
+}
+
+QImage *F_contrastRecover(QImage *image)
+{
+    TIMMING_BEGIN;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), minVal = 255, r;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            if (qRed(bits[y*width+x]) && qRed(bits[y*width+x]) < minVal)
+                minVal = qRed(bits[y*width+x]);
+        }
+    }
+
+    int multiple = minVal;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = qRed(bits[y*width+x]) / multiple;
+            newBits[y*width+x] = qRgb(r, r, r);
+        }
+    }
+
+    TIMMING_END;
+    qDebug()<<"contrast recover complete, muptiple = "<<multiple;
+    return newImage;
+}
+
+QImage *F_skeletonReconstruct(QImage *image)
+{
+    TIMMING_BEGIN;
+    QImage *tmpImage = image,
+           *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)tmpImage->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), color;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            newBits[y*width+x] = qRgb(0, 0, 0);
+        }
+    }
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            color = qRed(bits[y*width+x]) - 1;
+            if (color >= 0) {
+                for (int i = -color; i <= color; i++)
+                {
+                    for (int j = -color; j <= color; j++)
+                    {
+                        Q_ASSERT(U_legal(width, height, x+j, y+i));
+                        newBits[(y+i)*width+x+j] = qRgb(255, 255, 255);
+                    }
+                }
+            }
+        }
+    }
+
+    free(tmpImage);
     TIMMING_END;
     return newImage;
 }

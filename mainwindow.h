@@ -127,6 +127,10 @@ private slots:
 
     void on_actionSkeletonize_triggered();
 
+    void on_actionContrastStretch_triggered();
+
+    void on_actionSkeletonReconstruct_triggered();
+
 private:
     Ui::MainWindow *ui;
 

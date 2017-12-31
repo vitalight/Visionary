@@ -333,6 +333,7 @@ border-color: rgb(0, 0, 0);</string>
      </property>
      <addaction name="actionShowHistogram"/>
      <addaction name="actionEqualizeHistogram"/>
+     <addaction name="actionContrastStretch"/>
     </widget>
     <widget class="QMenu" name="menuSmoothFilter">
      <property name="title">
@@ -376,6 +377,7 @@ border-color: rgb(0, 0, 0);</string>
      <addaction name="actionThickening"/>
      <addaction name="actionDistanceTransform"/>
      <addaction name="actionSkeletonize"/>
+     <addaction name="actionSkeletonReconstruct"/>
     </widget>
     <widget class="QMenu" name="menuDetectEdge">
      <property name="title">
@@ -682,6 +684,16 @@ border-color: rgb(0, 0, 0);</string>
   <action name="actionSkeletonize">
    <property name="text">
     <string>骨架</string>
+   </property>
+  </action>
+  <action name="actionContrastStretch">
+   <property name="text">
+    <string>对比度拉伸</string>
+   </property>
+  </action>
+  <action name="actionSkeletonReconstruct">
+   <property name="text">
+    <string>骨架重构</string>
    </property>
   </action>
  </widget>
