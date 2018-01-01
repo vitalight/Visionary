@@ -242,6 +242,7 @@ border-color: rgb(0, 0, 0);</string>
     <addaction name="separator"/>
     <addaction name="actionSwitch"/>
     <addaction name="actionCopyToAnother"/>
+    <addaction name="actionAutoscale"/>
    </widget>
    <widget class="QMenu" name="menuFilter">
     <property name="enabled">
@@ -282,8 +283,8 @@ border-color: rgb(0, 0, 0);</string>
       <rect>
        <x>590</x>
        <y>239</y>
-       <width>182</width>
-       <height>246</height>
+       <width>137</width>
+       <height>198</height>
       </rect>
      </property>
      <property name="title">
@@ -294,9 +295,7 @@ border-color: rgb(0, 0, 0);</string>
      <addaction name="actionTimes"/>
      <addaction name="actionCut"/>
      <addaction name="actionResize"/>
-     <addaction name="actionResizeLinear"/>
      <addaction name="actionSpinNearest"/>
-     <addaction name="actionSpinLinear"/>
     </widget>
     <widget class="QMenu" name="menuMorphological">
      <property name="title">
@@ -500,7 +499,7 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionResize">
    <property name="text">
-    <string>缩放（最近邻）</string>
+    <string>缩放</string>
    </property>
   </action>
   <action name="actionResizeLinear">
@@ -510,7 +509,7 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionSpinNearest">
    <property name="text">
-    <string>旋转（最近邻）</string>
+    <string>旋转</string>
    </property>
   </action>
   <action name="actionSpinLinear">
@@ -640,6 +639,17 @@ border-color: rgb(0, 0, 0);</string>
   <action name="actionCustom">
    <property name="text">
     <string>自定义滤波</string>
+   </property>
+  </action>
+  <action name="actionAutoscale">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>自动缩放</string>
    </property>
   </action>
  </widget>

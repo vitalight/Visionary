@@ -28,7 +28,7 @@ int U_getKernelSum(U_Kernel_i kernel);
 double U_getKernelSum(U_Kernel_d kernel);
 int U_round(double f);
 bool U_in(int low, int value, int high);
-bool U_legal(int width, int height, int x, int y);
+bool U_legal(int width, int height, double x, double y);
 void U_colorBound(int &r, int &g, int &b);
 
 #endif // UTIL_H

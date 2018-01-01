@@ -46,10 +46,12 @@ private slots:
     void ui_change_val1(int val);
     void ui_change_val2(int val);
     void ui_change_val3(int val);
+    void ui_change_val4(int val);
     void ui_change_spinBox_number(int val);
     void ui_change_kernel(int val);
     void ui_input_kernel();
     QSlider *ui_mySlider(int minimum, int maximum, int singleStep);
+    QSpinBox *ui_mySpinBox(int minimum, int maximum, int value = 0);
 
     void on_actionOpen_triggered();
 
@@ -67,22 +69,24 @@ private slots:
 
     void on_actionSharpen_triggered();
 
+    void slot_dilation();
     void on_actionDilation_triggered();
 
+    void slot_erosion();
     void on_actionErosion_triggered();
 
     void on_actionEqualizeHistogram_triggered();
 
+    void slot_resize_preview();
+    void slot_resize();
     void on_actionResize_triggered();
-
-    void on_actionResizeLinear_triggered();
 
     void slot_channelSeperation();
     void on_actionChannelSeperation_triggered();
 
+    void slot_spin_preview();
+    void slot_spin();
     void on_actionSpinNearest_triggered();
-
-    void on_actionSpinLinear_triggered();
 
     void on_actionUndo_triggered();
 
@@ -104,8 +108,10 @@ private slots:
 
     void on_actionBlurMedian_triggered();
 
+    void slot_morphologicalOpen();
     void on_actionMorphologicalOpen_triggered();
 
+    void slot_morphologicalClose();
     void on_actionMorphologicalClose_triggered();
 
     void on_switchButton_clicked();
@@ -120,6 +126,8 @@ private slots:
 
     void on_actionTimes_triggered();
 
+    void slot_cut_preview();
+    void slot_cut();
     void on_actionCut_triggered();
 
     void on_actionShowHistogram_toggled(bool arg1);
@@ -128,10 +136,13 @@ private slots:
     void slot_adjustHSB_preview();
     void on_actionadjustHSB_triggered();
 
+    void slot_thining();
     void on_actionThining_triggered();
 
+    void slot_thickening();
     void on_actionThickening_triggered();
 
+    void slot_distance();
     void on_actionDistanceTransform_triggered();
 
     void on_actionSkeletonize_triggered();
@@ -145,22 +156,27 @@ private slots:
     void slot_convolution();
     void on_actionCustom_triggered();
 
+    void on_actionAutoscale_toggled(bool arg1);
+
 private:
     Ui::MainWindow *ui;
 
     QLabel *qlabel;
     ImageInfo images[2];
     int imageIndex = 0;
-    bool showHistogram = false;
+    bool showHistogram = false,
+         showScale = true;
     int ui_val1 = 0,
         ui_val2 = 0,
-        ui_val3 = 0;
+        ui_val3 = 0,
+        ui_val4 = 0;
     std::vector<double> inputKernel;
     std::vector<QWidget *> widgetList;
     std::vector<QWidget *> spinBoxes;
     void addMyWidget(QWidget *widget);
     void addMyWidget(QWidget *widget, int row, int column, int rowSpan, int columnSpan);
     U_Kernel_d constructKernel_d();
+    U_Kernel_i constructKernel_i();
 
     QDialogButtonBox *createButtonBox();
 

@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standered.png"
-#define DEFAULT_FUNCTION on_actionadjustHSB_triggered()
+#define DEFAULT_FUNCTION on_actionDilation_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,6 +35,8 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 #ifndef __RELEASE__
     on_actionOpen_triggered();
+    on_actionOtsu_triggered();
+    on_actionThining_triggered();
     DEFAULT_FUNCTION;
 #endif
 }
@@ -144,14 +146,24 @@ QImage MainWindow::autoscale(QImage *image)
         qDebug()<<"[error] autoscale: null getCurrentImage()";
         exit(-1);
     }
+    // todo: debug
     // Qt::SmoothTransformation
     QImage newImage;
-    if (image) {
-        newImage = image->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
-                                          Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    //return newImage;
+    if (showScale) {
+        if (image) {
+            newImage = image->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
+                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        } else {
+            newImage = getCurrentImage()->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
+                                              Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        }
     } else {
-        newImage = getCurrentImage()->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
-                                          Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        if (image) {
+            newImage = QImage(*image);
+        } else {
+            newImage = QImage(*getCurrentImage());
+        }
     }
     images[imageIndex].showWidth = newImage.width();
     images[imageIndex].showHeight = newImage.height();
@@ -220,9 +232,6 @@ void MainWindow::on_actionOpen_triggered()
 
     // log
     showImage(image);
-    //currentFile = fileName;
-    //qlabel->resize(860, 680);
-    //qDebug()<<"Resize: "<<ui->whitebg->geometry().width()<<", "<<ui->whitebg->geometry().height();
     ui->menuFilter->setEnabled(true);
     ui->actionRecover->setEnabled(false);
     showTip("已打开文件");
@@ -230,6 +239,9 @@ void MainWindow::on_actionOpen_triggered()
 
 void MainWindow::on_switchButton_clicked()
 {
+    ui_recover();
+    ui_clear();
+
     imageIndex = 1-imageIndex;
     showImage_without_history(getCurrentImage());
     ui->menuFilter->setEnabled(getCurrentImage() != NULL);
@@ -359,71 +371,13 @@ void MainWindow::on_actionSharpen_triggered()
     showTip("上次操作：锐化");
 }
 
-void MainWindow::on_actionDilation_triggered()
-{
-    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
-    showImage(F_dilation(getCurrentImage(), kernel));
-    showResponseTime();
-    showTip("上次操作：膨胀");
-}
 
-void MainWindow::on_actionErosion_triggered()
-{
-    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
-    showImage(F_erosion(getCurrentImage(), kernel));
-    showResponseTime();
-    showTip("上次操作：腐蚀");
-}
-
-void MainWindow::on_actionMorphologicalOpen_triggered()
-{
-    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
-    showImage(F_open(getCurrentImage(), kernel));
-    showResponseTime();
-    showTip("上次操作：开操作");
-}
-
-void MainWindow::on_actionMorphologicalClose_triggered()
-{
-    std::vector<std::vector<int>> kernel = U_getFlatKernel_i(5);
-    showImage(F_close(getCurrentImage(), kernel));
-    showResponseTime();
-    showTip("上次操作：闭操作");
-}
 
 void MainWindow::on_actionEqualizeHistogram_triggered()
 {
     showImage(F_equalizeHistogram(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：直方图均衡化");
-}
-
-void MainWindow::on_actionResize_triggered()
-{
-    showImage(F_resize(getCurrentImage(), F_NEAREST));
-    showResponseTime();
-    showTip("上次操作：最近邻缩放");
-}
-
-void MainWindow::on_actionResizeLinear_triggered()
-{
-    showImage(F_resize(getCurrentImage(), F_LINEAR));
-    showResponseTime();
-    showTip("上次操作：双线性插值缩放");
-}
-
-void MainWindow::on_actionSpinNearest_triggered()
-{
-    showImage(F_spin(getCurrentImage(), 45, F_NEAREST));
-    showResponseTime();
-    showTip("上次操作：最近邻旋转");
-}
-
-void MainWindow::on_actionSpinLinear_triggered()
-{
-    showImage(F_spin(getCurrentImage(), 45, F_LINEAR));
-    showResponseTime();
-    showTip("上次操作：双线性插值旋转");
 }
 
 void MainWindow::on_actionDetectEdgeSobel_triggered()
@@ -490,13 +444,6 @@ void MainWindow::on_actionTimes_triggered()
     showTip("上次操作：乘操作");
 }
 
-void MainWindow::on_actionCut_triggered()
-{
-    showImage(F_cut(getCurrentImage(), 0, 0, 231, 209));
-    showResponseTime();
-    showTip("上次操作：裁剪");
-}
-
 void MainWindow::updateHistogram()
 {
     if (showHistogram)
@@ -513,31 +460,10 @@ void MainWindow::on_actionShowHistogram_toggled(bool arg1)
     updateHistogram();
 }
 
-void MainWindow::on_actionThining_triggered()
+void MainWindow::on_actionAutoscale_toggled(bool arg1)
 {
-    U_Kernel_i kernel = {{0, 0, 0},
-                         {2, 1, 2},
-                         {1, 1, 1}};
-    showImage(F_thinning(getCurrentImage(), kernel));
-    showResponseTime();
-    showTip("上次操作：细化");
-}
-
-void MainWindow::on_actionThickening_triggered()
-{
-    U_Kernel_i kernel = {{1, 1, 2},
-                         {1, 0, 2},
-                         {1, 2, 0}};
-    showImage(F_thickening(getCurrentImage(), kernel));
-    showResponseTime();
-    showTip("上次操作：粗化");
-}
-
-void MainWindow::on_actionDistanceTransform_triggered()
-{
-    showImage(F_contrastStretch(F_distance(getCurrentImage())));
-    showResponseTime();
-    showTip("上次操作：距离变换");
+    showScale = arg1;
+    showImage_without_history(getCurrentImage());
 }
 
 void MainWindow::on_actionSkeletonize_triggered()
@@ -626,6 +552,10 @@ void MainWindow::ui_change_val3(int val)
     ui_val3 = val;
 }
 
+void MainWindow::ui_change_val4(int val)
+{
+    ui_val4 = val;
+}
 
 void MainWindow::ui_change_kernel(int val)
 {
@@ -667,13 +597,38 @@ void MainWindow::ui_input_kernel()
             widget->setMinimum(-20);
             if (i > 2 || j > 2)
                 spinBoxes.push_back(widget);
-            addMyWidget(widget, i+1, j, 1, 1);
+            addMyWidget(widget, i+2, j, 1, 1);
             connect(widget, SIGNAL(valueChanged(int)), this , SLOT(ui_change_val2(int)));
             connect(widget, SIGNAL(valueChanged(int)), signalMapper, SLOT(map()));
             signalMapper->setMapping(widget, i*5+j);
         }
     }
     connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(ui_change_kernel(int)));
+}
+
+QSpinBox *MainWindow::ui_mySpinBox(int minimum, int maximum, int value)
+{
+    QSpinBox *spinBox = new QSpinBox;
+    spinBox->setMinimum(minimum);
+    spinBox->setMaximum(maximum);
+    spinBox->setValue(value);
+    addMyWidget(spinBox);
+    return spinBox;
+}
+
+U_Kernel_i MainWindow::constructKernel_i()
+{
+    U_Kernel_i kernel;
+    for (int i = 0; i < ui_val1; i++)
+    {
+        std::vector<int> line;
+        for (int j = 0; j < ui_val1; j++)
+        {
+            line.push_back(inputKernel[i*5+j]);
+        }
+        kernel.push_back(line);
+    }
+    return kernel;
 }
 
 U_Kernel_d MainWindow::constructKernel_d()
@@ -746,6 +701,8 @@ void MainWindow::on_actionChannelSeperation_triggered()
     connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(slot_channelSeperation()));
     connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+
+    showTip("正在进行：通道分离");
 }
 
 void MainWindow::slot_adjustHSB()
@@ -763,6 +720,9 @@ void MainWindow::slot_adjustHSB_preview()
 void MainWindow::on_actionadjustHSB_triggered()
 {
     ui_clear();
+    ui_val1 = 0;
+    ui_val2 = 0;
+    ui_val3 = 0;
     QSlider *slider1 = ui_mySlider(-180, 180, 5),
             *slider2 = ui_mySlider(-100, 100, 5),
             *slider3 = ui_mySlider(-100, 100, 5);
@@ -779,6 +739,7 @@ void MainWindow::on_actionadjustHSB_triggered()
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_adjustHSB()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：调整HSB");
 }
 
 void MainWindow::slot_convolution()
@@ -798,6 +759,7 @@ void MainWindow::on_actionCustom_triggered()
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_convolution()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：自定义滤波");
 }
 
 void MainWindow::slot_doubleTreshold_preview()
@@ -821,6 +783,8 @@ void MainWindow::on_actionDoubleThreshold_triggered()
 {
     ui_clear();
 
+    ui_val1 = 0;
+    ui_val2 = 0;
     QSlider *slider1 = ui_mySlider(0, 255, 1);
     QSlider *slider2 = ui_mySlider(0, 255, 1);
 
@@ -832,4 +796,280 @@ void MainWindow::on_actionDoubleThreshold_triggered()
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_doubleTreshold()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：双阈值二值化");
+}
+
+void MainWindow::slot_cut_preview()
+{
+    showThumbnail(F_cut(getCurrentImage(), ui_val1, ui_val2, ui_val3, ui_val4));
+}
+
+void MainWindow::slot_cut()
+{
+    showImage(F_cut(getCurrentImage(), ui_val1, ui_val2, ui_val3, ui_val4));
+    showResponseTime();
+    showTip("上次操作：裁剪");
+}
+
+void MainWindow::on_actionCut_triggered()
+{
+    ui_clear();
+    ui_val1 = 1;
+    ui_val2 = 1;
+    ui_val3 = getCurrentImage()->width();
+    ui_val4 = getCurrentImage()->height();
+
+    QSpinBox *spinBox1 = ui_mySpinBox(1, getCurrentImage()->width(), 1),
+             *spinBox2 = ui_mySpinBox(1, getCurrentImage()->height(), 1),
+             *spinBox3 = ui_mySpinBox(1, getCurrentImage()->width(), getCurrentImage()->width()),
+             *spinBox4 = ui_mySpinBox(1, getCurrentImage()->height(), getCurrentImage()->height());
+
+    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+
+    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+
+    connect(spinBox3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
+    connect(spinBox3, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+
+    connect(spinBox4, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val4(int)));
+    connect(spinBox4, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_cut()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+
+    showTip("正在进行：裁剪");
+}
+
+void MainWindow::slot_resize_preview()
+{
+    if (ui_val3) {
+        showThumbnail(F_resize(getCurrentImage(), ui_val1, ui_val2, F_LINEAR));
+    } else {
+        showThumbnail(F_resize(getCurrentImage(), ui_val1, ui_val2, F_NEAREST));
+    }
+}
+
+void MainWindow::slot_resize()
+{
+    if (ui_val3) {
+        showImage(F_resize(getCurrentImage(), ui_val1, ui_val2, F_LINEAR));
+    } else {
+        showImage(F_resize(getCurrentImage(), ui_val1, ui_val2, F_NEAREST));
+    }
+    showResponseTime();
+    showTip("上次操作：缩放");
+}
+
+void MainWindow::on_actionResize_triggered()
+{
+    ui_clear();
+
+    QComboBox *comboBox = new QComboBox;
+    comboBox->addItem("最近邻", 0);
+    comboBox->addItem("双线性插值", 1);
+    addMyWidget(comboBox);
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val3(int)));
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_resize_preview()));
+
+    ui_val1 = getCurrentImage()->width();
+    ui_val2 = getCurrentImage()->height();
+
+    QSpinBox *spinBox1 = ui_mySpinBox(1, 2000, getCurrentImage()->width()),
+             *spinBox2 = ui_mySpinBox(1, 2000, getCurrentImage()->height());
+
+    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(slot_resize_preview()));
+
+    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(slot_resize_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_resize()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+
+    showTip("正在进行：缩放");
+}
+
+void MainWindow::slot_spin_preview()
+{
+    if (ui_val2) {
+        showThumbnail(F_spin(getCurrentImage(), ui_val1, F_LINEAR));
+    } else {
+        showThumbnail(F_spin(getCurrentImage(), ui_val1, F_NEAREST));
+    }
+}
+
+void MainWindow::slot_spin()
+{
+    if (ui_val2) {
+        showImage(F_spin(getCurrentImage(), ui_val1, F_LINEAR));
+    } else {
+        showImage(F_spin(getCurrentImage(), ui_val1, F_NEAREST));
+    }
+    showResponseTime();
+    showTip("上次操作：旋转");
+}
+
+void MainWindow::on_actionSpinNearest_triggered()
+{
+    ui_clear();
+
+    QComboBox *comboBox = new QComboBox;
+    comboBox->addItem("最近邻", 0);
+    comboBox->addItem("双线性插值", 1);
+    addMyWidget(comboBox);
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_spin_preview()));
+
+    ui_val1 = 0;
+    ui_val2 = 0;
+
+    QSlider *slider1 = ui_mySlider(0, 360, 5);
+
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_spin_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_spin()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：旋转");
+}
+
+void MainWindow::slot_dilation()
+{
+    U_Kernel_i kernel = constructKernel_i();
+
+    showImage(F_dilation(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：膨胀");
+}
+
+void MainWindow::on_actionDilation_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_dilation()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：膨胀");
+}
+
+void MainWindow::slot_erosion()
+{
+    U_Kernel_i kernel = constructKernel_i();
+
+    showImage(F_erosion(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：腐蚀");
+}
+
+void MainWindow::on_actionErosion_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_erosion()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：腐蚀");
+}
+
+void MainWindow::slot_morphologicalOpen()
+{
+    U_Kernel_i kernel = constructKernel_i();
+
+    showImage(F_open(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：开操作");
+}
+
+void MainWindow::on_actionMorphologicalOpen_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_morphologicalOpen()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：开操作");
+}
+
+void MainWindow::slot_morphologicalClose()
+{
+    std::vector<std::vector<int>> kernel = constructKernel_i();
+    showImage(F_close(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：闭操作");
+}
+
+void MainWindow::on_actionMorphologicalClose_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_morphologicalClose()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：闭操作");
+}
+
+void MainWindow::slot_thining()
+{
+    U_Kernel_i kernel = constructKernel_i();
+    showImage(F_thinning(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：细化");
+}
+
+void MainWindow::on_actionThining_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_thining()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：细化");
+}
+
+void MainWindow::slot_thickening()
+{
+    U_Kernel_i kernel = constructKernel_i();
+    showImage(F_thickening(getCurrentImage(), kernel));
+    showResponseTime();
+    showTip("上次操作：粗化");
+}
+
+void MainWindow::on_actionThickening_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_thickening()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：粗化");
+}
+
+void MainWindow::slot_distance()
+{
+    U_Kernel_i kernel = constructKernel_i();
+    showImage(F_contrastStretch(F_distance(getCurrentImage())));
+    showResponseTime();
+    showTip("上次操作：距离变换");
+}
+
+void MainWindow::on_actionDistanceTransform_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_distance()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：距离变换");
 }

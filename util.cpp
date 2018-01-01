@@ -92,7 +92,8 @@ bool U_in(int low, int value, int high)
     return value>=low && value<high;
 }
 
-bool U_legal(int width, int height, int x, int y)
+// change from int to double
+bool U_legal(int width, int height, double x, double y)
 {
     return x>=0 && x<width && y>=0 && y<height;
 }

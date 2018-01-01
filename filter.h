@@ -49,8 +49,10 @@ QImage *F_adjustHSB(QImage *image, int h_val, int s_val, int b_val);
  * 2. 二值化
 ****************************************************************/
 QImage *F_binarization(QImage *image, int threshold);
+
 // Otus(大津算法)
 QImage *F_binarization_Otsu(QImage *image);
+
 // 手动调节：双阈值，实时
 QImage *F_binarization_double(QImage *image, int threshold_low, int threshold_high);
 
@@ -66,7 +68,7 @@ QImage *F_cut(QImage *image, int x_start, int y_start, int width, int height);
 // 缩放（最近邻、双线性）
 QImage *F_resize_linear(QImage *image, int width, int height);
 QImage *F_resize_nearest(QImage *image, int width, int height);
-QImage *F_resize(QImage *image, F_ScaleAlgo algo);
+QImage *F_resize(QImage *image, int width, int height, F_ScaleAlgo algo);
 
 // 旋转（最近邻、双线性）
 QImage *F_cut_transparent(QImage *image);
@@ -120,25 +122,30 @@ QImage *F_dilation(QImage *image, U_Kernel_i kernel);
 QImage *F_erosion(QImage *image, U_Kernel_i kernel);
 QImage *F_open(QImage *image, U_Kernel_i kernel);
 QImage *F_close(QImage *image, U_Kernel_i kernel);
+
 // 细化、粗化
 QImage *F_complement(QImage *image);
 QImage *F_union(QImage *image1, QImage *image2);
 QImage *F_intersection(QImage *image1, QImage *image2);
 QImage *F_hitAndMiss(QImage *image, U_Kernel_i kernel);
+
 QImage *F_thinning(QImage *image, U_Kernel_i kernel);
 QImage *F_thickening(QImage *image, U_Kernel_i kernel);
+
 // 距离变换
 QImage *F_contrastStretch(QImage *image);
 QImage *F_distance(QImage *image);
+
 // 骨架、骨架重构
 QImage *F_skeletonize(QImage *image);
 QImage *F_skeletonReconstruct(QImage *image);
+
 // 二值形态学重构
 QImage *F_reconstruct(QImage *marker, QImage *mask);
 
 /***************************************************************
  * 9. 灰度数学形态学
 ****************************************************************/
-// 膨胀、腐蚀、开、闭、形态学重构、分水岭算法
+// 分水岭算法
 
 #endif // PROCESSOR_H

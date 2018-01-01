@@ -450,13 +450,13 @@ QImage *F_resize_linear(QImage *image, int width, int height)
     for (int y = 0; y < height; y++)
     {
         decimal_h = y * rate_h;
-        target_h = (int)decimal_h;
+        target_h = int(decimal_h);
         left_y = decimal_h - target_h;
         right_y = 1 - left_y;
         for (int x = 0; x < width; x++)
         {
             decimal_w = x * rate_w;
-            target_w = (int)decimal_w;
+            target_w = int(decimal_w);
             left_x = decimal_w - target_w;
             right_x = 1 - left_x;
 
@@ -468,25 +468,24 @@ QImage *F_resize_linear(QImage *image, int width, int height)
                     g = qGreen(bits[index]);
                     b = qBlue(bits[index]);
                 } else {
-                    r = left_y * qRed(bits[index]) * qAlpha(bits[index]) + right_y * qRed(bits[index + oldWidth]) * qAlpha(bits[index+oldWidth]);
-                    g = left_y * qGreen(bits[index]) * qAlpha(bits[index]) + right_y * qGreen(bits[index + oldWidth]) * qAlpha(bits[index+oldWidth]);
-                    b = left_y * qBlue(bits[index]) * qAlpha(bits[index]) + right_y * qBlue(bits[index + oldWidth]) * qAlpha(bits[index+oldWidth]);
+                    r = right_y * qRed(bits[index])  + left_y * qRed(bits[index + oldWidth]);
+                    g = right_y * qGreen(bits[index]) + left_y * qGreen(bits[index + oldWidth]);
+                    b = right_y * qBlue(bits[index]) + left_y * qBlue(bits[index + oldWidth]);
                 }
             } else {
-                if (y == height - 1 || !qAlpha(bits[index])) {
-                    r = left_x * qRed(bits[index]) * qAlpha(bits[index]) + right_x * qRed(bits[index + 1]) * qAlpha(bits[index+1]);
-                    g = left_x * qGreen(bits[index]) * qAlpha(bits[index]) + right_x * qGreen(bits[index + 1]) * qAlpha(bits[index+1]);
-                    b = left_x * qBlue(bits[index]) * qAlpha(bits[index]) + right_x * qBlue(bits[index + 1]) * qAlpha(bits[index+1]);
+                if (y == height - 1) {
+                    r = right_x * qRed(bits[index]) + left_x * qRed(bits[index + 1]);
+                    g = right_x * qGreen(bits[index]) + left_x * qGreen(bits[index + 1]);
+                    b = right_x * qBlue(bits[index]) + left_x * qBlue(bits[index + 1]);
                 } else {
-                    r = left_y * (left_x * qRed(bits[index]) * qAlpha(bits[index]) + right_x * qRed(bits[index + 1]))
-                            + right_y * (left_x * qRed(bits[index + oldWidth]) * qAlpha(bits[index]) + right_x * qRed(bits[index + oldWidth + 1])) * qAlpha(bits[index+oldWidth+1]);
-                    g = left_y * (left_x * qGreen(bits[index]) * qAlpha(bits[index]) + right_x * qGreen(bits[index + 1]))
-                            + right_y * (left_x * qGreen(bits[index + oldWidth]) * qAlpha(bits[index]) + right_x * qGreen(bits[index + oldWidth + 1])) * qAlpha(bits[index+oldWidth+1]);
-                    b = left_y * (left_x * qBlue(bits[index]) + right_x * qBlue(bits[index + 1]))
-                            + right_y * (left_x * qBlue(bits[index + oldWidth]) * qAlpha(bits[index]) + right_x * qBlue(bits[index + oldWidth + 1])) * qAlpha(bits[index+oldWidth+1]);
+                    r = right_y * (right_x * qRed(bits[index]) + left_x * qRed(bits[index + 1]))
+                            + left_y * (right_x * qRed(bits[index + oldWidth]) + left_x * qRed(bits[index + oldWidth + 1]));
+                    g = right_y * (right_x * qGreen(bits[index]) + left_x * qGreen(bits[index + 1]))
+                            + left_y * (right_x * qGreen(bits[index + oldWidth]) + left_x * qGreen(bits[index + oldWidth + 1]));
+                    b = right_y * (right_x * qBlue(bits[index]) + left_x * qBlue(bits[index + 1]))
+                            + left_y * (right_x * qBlue(bits[index + oldWidth]) + left_x * qBlue(bits[index + oldWidth + 1]));
                 }
             }
-
             newBits[x + y * width] = qRgb(r, g, b);
         }
     }
@@ -523,10 +522,8 @@ QImage *F_resize_nearest(QImage *image, int width, int height)
     return newImage;
 }
 
-QImage *F_resize(QImage *image, F_ScaleAlgo algo)
+QImage *F_resize(QImage *image, int width, int height, F_ScaleAlgo algo)
 {
-    int width = 400, height = 200;
-
     if (algo == F_NEAREST)
         return F_resize_nearest(image, width, height);
     else
@@ -604,7 +601,6 @@ QImage *F_spin_linear(QImage *image, int angle)
     {
         for (int x = 0; x < newWidth; x++)
         {
-            // todo
             decimal_x = x*cos(theta) + y*sin(theta) + delta_x;
             decimal_y = -x*sin(theta) + y*cos(theta) + delta_y;
 
@@ -616,43 +612,47 @@ QImage *F_spin_linear(QImage *image, int angle)
             top = decimal_y - target_y;
             bottom = 1-top;
 
-            // ignore blank space
-//            if (decimal_x < 0 || decimal_x >= width-1 || decimal_y < 0 || decimal_y >= height-1) {
-//                continue;
-//            }
             index = y * newWidth + x;
             target_index = target_x + target_y * width;
 
-            if (target_x < 0 || target_x >= width-1 ||
-                target_y < 0 || target_y >= height-1 ||
+            if ((target_x && target_y &&
+                !U_legal(width, height, decimal_x-0.1, decimal_y-0.1)) ||
                 !qAlpha(bits[target_index])) {
+                newBits[index] = qRgb(255, 255, 255);
                 continue;
             }
 
 
-            if (decimal_x == width) {
-                if (decimal_y == height) {
-
+            if (target_x == width) {
+                if (target_y == height) {
+                    r = qRed(bits[target_index]);
+                    g = qGreen(bits[target_index]);
+                    b = qBlue(bits[target_index]);
+                } else {
+                    r = bottom * qRed(bits[target_index]) + top * qRed(bits[target_index+width]);
+                    g = bottom * qGreen(bits[target_index]) + top * qGreen(bits[target_index+width]);
+                    b = bottom * qBlue(bits[target_index]) + top * qBlue(bits[target_index+width]);
                 }
             } else {
-                if (decimal_y == height) {
-
+                if (target_y == height) {
+                    r = right * qRed(bits[target_index]) + left * qRed(bits[target_index+1]);
+                    g = right * qGreen(bits[target_index]) + left * qGreen(bits[target_index+1]);
+                    b = right * qBlue(bits[target_index]) + left * qBlue(bits[target_index+1]);
+                } else {
+                    r = right * (bottom * qRed(bits[target_index]) + top * qRed(bits[target_index+width]))
+                        + left * (bottom * qRed(bits[target_index+1]) + top * qRed(bits[target_index+width+1]));
+                    g = right * (bottom * qGreen(bits[target_index]) + top * qGreen(bits[target_index+width]))
+                        + left * (bottom * qGreen(bits[target_index+1]) + top * qGreen(bits[target_index+width+1]));
+                    b = right * (bottom * qBlue(bits[target_index]) + top * qBlue(bits[target_index+width]))
+                        + left * (bottom * qBlue(bits[target_index+1]) + top * qBlue(bits[target_index+width+1]));
                 }
             }
-
-            r = left * (top * qRed(bits[target_index]) + bottom * qRed(bits[target_index+width]))
-                + right * (top * qRed(bits[target_index+1]) + bottom * qRed(bits[target_index+width+1]));
-            g = left * (top * qGreen(bits[target_index]) + bottom * qGreen(bits[target_index+width]))
-                + right * (top * qGreen(bits[target_index+1]) + bottom * qGreen(bits[target_index+width+1]));
-            b = left * (top * qBlue(bits[target_index]) + bottom * qBlue(bits[target_index+width]))
-                + right * (top * qBlue(bits[target_index+1]) + bottom * qBlue(bits[target_index+width+1]));
-
             newBits[index] = qRgb(r, g, b);
         }
     }
 
     TIMMING_END;
-    return F_cut_transparent(newImage);
+    return newImage;
 }
 
 // 最近邻旋转
@@ -660,7 +660,7 @@ QImage *F_spin_linear(QImage *image, int angle)
 QImage *F_spin_nearest(QImage *image, int angle)
 {
     TIMMING_BEGIN;
-    double theta = angle/180.0*PI;
+    double theta = (angle%360)/180.0*PI;
     int width = image->width(), height = image->height(),
         newWidth = ceil(abs(width*cos(theta)) + abs(height*sin(theta))),
         newHeight = ceil(abs(height*cos(theta)) + abs(width*sin(theta))),
@@ -684,19 +684,19 @@ QImage *F_spin_nearest(QImage *image, int angle)
             target_x = U_round(decimal_x);
             target_y = U_round(decimal_y);
 
+            index = y * newWidth + x;
             // ignore blank space
-            if (target_x < 0 || target_x >= width || target_y < 0 || target_y >= height) {
+            if (!U_legal(width, height, target_x, target_y)) {
+                newBits[index] = qRgb(255, 255, 255);
                 continue;
             }
-
-            index = y * newWidth + x;
             target_index = target_x + target_y * width;
             newBits[index] = bits[target_index];
         }
     }
 
     TIMMING_END;
-    return F_cut_transparent(newImage);
+    return newImage;
 }
 
 QImage *F_spin(QImage *image, int angle, F_ScaleAlgo algo)
@@ -1179,10 +1179,9 @@ QImage *F_dilation(QImage *image, U_Kernel_i kernel)
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    int kernelSize = 5,
+    int kernelSize = kernel.size(),
         halfSize = kernelSize/2,
         r, g, b, index;
-    QColor color;
 
     for (int x = 0; x < image->width(); x++) {
         for (int y = 0; y < image->height(); y++) {
@@ -1217,7 +1216,6 @@ QImage *F_erosion(QImage *image, U_Kernel_i kernel)
     int kernelSize = kernel.size(),
         halfSize = kernelSize/2,
         r, g, b, index;
-    QColor color;
 
     for (int x = 0; x < image->width(); x++) {
         for (int y = 0; y < image->height(); y++) {
@@ -1254,7 +1252,6 @@ QImage *F_close(QImage *image, U_Kernel_i kernel)
     return F_erosion(F_dilation(image, kernel), kernel);
 }
 
-// 细化
 QImage *F_complement(QImage *image)
 {
     TIMMING_BEGIN;
@@ -1348,7 +1345,6 @@ QImage *F_hitAndMiss(QImage *image, U_Kernel_i kernel)
     int kernelSize = kernel.size(),
         halfSize = kernelSize/2,
         r, index;
-    QColor color;
 
     for (int x = 0; x < image->width(); x++) {
         for (int y = 0; y < image->height(); y++) {
@@ -1376,6 +1372,7 @@ QImage *F_hitAndMiss(QImage *image, U_Kernel_i kernel)
     return newImage;
 }
 // 细化
+// [todo] don't work
 QImage *F_thinning(QImage *image, U_Kernel_i kernel)
 {
     return F_minus(image, F_hitAndMiss(image, kernel));
