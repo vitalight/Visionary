@@ -4,19 +4,18 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 
 ## Todo List
 - 总体功能
-  - [ ] 右边输入栏（像素值）
-  - [ ] 实时显示
   - [ ] 晶格化滤镜（自制）
   - [ ] 连续旋转改为累计旋转
-  - [ ] 模仿Typora外观 
   - [ ] timming取消，或者放mainwindow
+  - [x] 右边输入栏（像素值）
+  - [x] 实时显示
   - [x] 双图片显示
   - [x] 历史操作显示
 
 
 - 彩色图像处理
   - [x] 三通道分离 V
-  - [x] 彩色  -->灰度
+  - [x] 彩色  -->灰度 V
   - [x] 色相/饱和度/亮度调节 V
   - [ ] 色阶调整（选做）
 - 二值化

@@ -9,6 +9,7 @@
 #include <QDebug>
 
 #define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standered.png"
+#define DEFAULT_FUNCTION on_actionadjustHSB_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -16,8 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     images[imageIndex].originalImage = NULL;
-    setWindowFlags(windowFlags()
-                   &~Qt::WindowMaximizeButtonHint); // 禁止最大化按钮
+    setWindowFlags(windowFlags() & ~Qt::WindowMaximizeButtonHint); // 禁止最大化按钮
     setFixedSize(this->width(),this->height());     // 禁止拖动窗口大小
 
 
@@ -27,9 +27,15 @@ MainWindow::MainWindow(QWidget *parent) :
     qlabel->setMouseTracking(true);                 // 鼠标跟踪
 
     ui->histogramArea->setVisible(false);           // 默认隐藏直方图
+
+    // 初始化InputKernel
+    for (int i = 0; i < 25; i++)
+    {
+        inputKernel.push_back(0.0);
+    }
 #ifndef __RELEASE__
     on_actionOpen_triggered();
-    on_actionadjustHSB_triggered();
+    DEFAULT_FUNCTION;
 #endif
 }
 
@@ -157,52 +163,6 @@ void MainWindow::showTip(QString str)
     ui->tip->setText(str);
 }
 
-/************************************************
- * UI slot
- ************************************************/
-QDialogButtonBox *MainWindow::createButtonBox()
-{
-    QDialogButtonBox *dialogButtonBox = new QDialogButtonBox;
-    ui->verticalLayout->addWidget(dialogButtonBox);
-    widgetList.push_back(dialogButtonBox);
-    dialogButtonBox->addButton("确定", QDialogButtonBox::AcceptRole);
-    dialogButtonBox->addButton("取消", QDialogButtonBox::RejectRole);
-    connect(dialogButtonBox, SIGNAL(rejected()), this, SLOT(ui_recover()));
-    connect(dialogButtonBox, SIGNAL(rejected()), this, SLOT(ui_clear()));
-
-    return dialogButtonBox;
-}
-
-void MainWindow::ui_recover()
-{
-    showImage_without_history(getCurrentImage());
-}
-
-void MainWindow::ui_clear()
-{
-    for (QWidget *cur:widgetList)
-    {
-        ui->verticalLayout->removeWidget(cur);
-        delete cur;
-    }
-    widgetList.clear();
-    ui->verticalLayout->update();
-}
-
-void MainWindow::ui_change_val1(int val)
-{
-    ui_val1 = val;
-}
-
-void MainWindow::ui_change_val2(int val)
-{
-    ui_val2 = val;
-}
-
-void MainWindow::ui_change_val3(int val)
-{
-    ui_val3 = val;
-}
 /************************************************
  * Signal slot function for UI operation
  ************************************************/
@@ -452,44 +412,6 @@ void MainWindow::on_actionResizeLinear_triggered()
     showTip("上次操作：双线性插值缩放");
 }
 
-void MainWindow::slot_channelSeperation()
-{
-    switch (ui_val1)
-    {
-    case 0:
-        showImage(F_seperation(getCurrentImage(), F_R));
-        break;
-    case 1:
-        showImage(F_seperation(getCurrentImage(), F_G));
-        break;
-    case 2:
-        showImage(F_seperation(getCurrentImage(), F_B));
-        break;
-    default:
-        break;
-    }
-    showResponseTime();
-    showTip("上次操作：通道分离");
-}
-
-void MainWindow::on_actionChannelSeperation_triggered()
-{
-    QComboBox *comboBox = new QComboBox;
-    ui->verticalLayout->addWidget(comboBox);
-    widgetList.push_back(comboBox);
-
-    QDialogButtonBox *dialogButtonBox = createButtonBox();
-
-    //comboBox->se;
-    comboBox->addItem("红", 0);
-    comboBox->addItem("绿", 1);
-    comboBox->addItem("蓝", 2);
-
-    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val1(int)));
-    connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(slot_channelSeperation()));
-    connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
-}
-
 void MainWindow::on_actionSpinNearest_triggered()
 {
     showImage(F_spin(getCurrentImage(), 45, F_NEAREST));
@@ -530,13 +452,6 @@ void MainWindow::on_actionOtsu_triggered()
     showImage(F_binarization_Otsu(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：大津算法二值化");
-}
-
-void MainWindow::on_actionDoubleThreshold_triggered()
-{
-    showImage(F_binarization_double(getCurrentImage(), 100, 200));
-    showResponseTime();
-    showTip("上次操作：双阈值二值化");
 }
 
 void MainWindow::on_actionAdd_triggered()
@@ -598,86 +513,9 @@ void MainWindow::on_actionShowHistogram_toggled(bool arg1)
     updateHistogram();
 }
 
-
-void MainWindow::slot_adjustHSB()
-{
-    showImage(F_adjustHSB(getCurrentImage(), ui_val1, ui_val2, ui_val3));
-    showResponseTime();
-    showTip("上次操作：调整HSB");
-}
-
-void MainWindow::slot_adjustHSB_preview()
-{
-    //qDebug()<<ui_val1<<ui_val2<<ui_val3;
-    showThumbnail(F_adjustHSB(getCurrentImage(), ui_val1, ui_val2, ui_val3));
-}
-
-void MainWindow::on_actionadjustHSB_triggered()
-{
-    ui_clear();
-    QSpinBox *spinBox1 = new QSpinBox,
-            *spinBox2 = new QSpinBox,
-            *spinBox3 = new QSpinBox;
-    QSlider *slider1 = new QSlider(Qt::Horizontal),
-            *slider2 = new QSlider(Qt::Horizontal),
-            *slider3 = new QSlider(Qt::Horizontal);
-
-
-    slider1->setMinimum(-180);
-    slider1->setMaximum(180);
-    slider1->setSingleStep(5);
-    spinBox1->setMinimum(-180);
-    spinBox1->setMaximum(180);
-
-    slider2->setMinimum(-100);
-    slider2->setMaximum(100);
-    slider2->setSingleStep(5);
-    spinBox2->setMinimum(-100);
-    spinBox2->setMaximum(100);
-
-    slider3->setMinimum(-100);
-    slider3->setMaximum(100);
-    slider3->setSingleStep(5);
-    spinBox3->setMinimum(-100);
-    spinBox3->setMaximum(100);
-
-    widgetList.push_back(spinBox1);
-    widgetList.push_back(slider1);
-    widgetList.push_back(spinBox2);
-    widgetList.push_back(slider2);
-    widgetList.push_back(spinBox3);
-    widgetList.push_back(slider3);
-
-    ui->verticalLayout->addWidget(spinBox1);
-    ui->verticalLayout->addWidget(slider1);
-    ui->verticalLayout->addWidget(spinBox2);
-    ui->verticalLayout->addWidget(slider2);
-    ui->verticalLayout->addWidget(spinBox3);
-    ui->verticalLayout->addWidget(slider3);
-
-    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
-    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_adjustHSB_preview()));
-    connect(slider1, SIGNAL(valueChanged(int)), spinBox1, SLOT(setValue(int)));
-    connect(spinBox1, SIGNAL(valueChanged(int)), slider1, SLOT(setValue(int)));
-
-    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
-    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_adjustHSB_preview()));
-    connect(slider2, SIGNAL(valueChanged(int)), spinBox2, SLOT(setValue(int)));
-    connect(spinBox2, SIGNAL(valueChanged(int)), slider2, SLOT(setValue(int)));
-
-    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
-    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(slot_adjustHSB_preview()));
-    connect(slider3, SIGNAL(valueChanged(int)), spinBox3, SLOT(setValue(int)));
-    connect(spinBox3, SIGNAL(valueChanged(int)), slider3, SLOT(setValue(int)));
-
-    QDialogButtonBox *buttonBox = createButtonBox();
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_adjustHSB()));
-    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
-}
-
 void MainWindow::on_actionThining_triggered()
 {
-    F_Kernel_i kernel = {{0, 0, 0},
+    U_Kernel_i kernel = {{0, 0, 0},
                          {2, 1, 2},
                          {1, 1, 1}};
     showImage(F_thinning(getCurrentImage(), kernel));
@@ -687,7 +525,7 @@ void MainWindow::on_actionThining_triggered()
 
 void MainWindow::on_actionThickening_triggered()
 {
-    F_Kernel_i kernel = {{1, 1, 2},
+    U_Kernel_i kernel = {{1, 1, 2},
                          {1, 0, 2},
                          {1, 2, 0}};
     showImage(F_thickening(getCurrentImage(), kernel));
@@ -728,4 +566,270 @@ void MainWindow::on_actionReconstruct_triggered()
     showImage(F_reconstruct(getCurrentImage(), getAnotherImage()));
     showResponseTime();
     showTip("上次操作：形态学重构");
+}
+/************************************************
+ * UI slot
+ ************************************************/
+QDialogButtonBox *MainWindow::createButtonBox()
+{
+    QDialogButtonBox *dialogButtonBox = new QDialogButtonBox;
+    addMyWidget(dialogButtonBox);
+    dialogButtonBox->addButton("确定", QDialogButtonBox::AcceptRole);
+    dialogButtonBox->addButton("取消", QDialogButtonBox::RejectRole);
+    connect(dialogButtonBox, SIGNAL(rejected()), this, SLOT(ui_recover()));
+    connect(dialogButtonBox, SIGNAL(rejected()), this, SLOT(ui_clear()));
+
+    return dialogButtonBox;
+}
+
+void MainWindow::addMyWidget(QWidget *widget)
+{
+    widgetList.push_back(widget);
+    ui->gridLayout->addWidget(widget, widgetList.size()-1, 0, 2, -1);
+}
+
+void MainWindow::addMyWidget(QWidget *widget, int row, int column, int rowSpan, int columnSpan)
+{
+    widgetList.push_back(widget);
+    ui->gridLayout->addWidget(widget, row, column, rowSpan, columnSpan);
+}
+
+void MainWindow::ui_recover()
+{
+    showImage_without_history(getCurrentImage());
+}
+
+void MainWindow::ui_clear()
+{
+    for (QWidget *cur:widgetList)
+    {
+        ui->gridLayout->removeWidget(cur);
+        delete cur;
+    }
+    spinBoxes.clear();
+    widgetList.clear();
+    ui->gridLayout->update();
+}
+
+void MainWindow::ui_change_val1(int val)
+{
+    ui_val1 = val;
+}
+
+void MainWindow::ui_change_val2(int val)
+{
+    ui_val2 = val;
+}
+
+void MainWindow::ui_change_val3(int val)
+{
+    ui_val3 = val;
+}
+
+
+void MainWindow::ui_change_kernel(int val)
+{
+    inputKernel[val] = ui_val2;
+}
+
+void MainWindow::ui_change_spinBox_number(int val)
+{
+    ui_val1 = 5 - val*2;
+    if (val==1) {
+        for (QWidget *widget:spinBoxes)
+        {
+            widget->setVisible(false);
+        }
+    } else {
+        for (QWidget *widget:spinBoxes)
+        {
+            widget->setVisible(true);
+        }
+    }
+}
+
+void MainWindow::ui_input_kernel()
+{
+    ui_val1 = 5;
+    QComboBox *comboBox = new QComboBox;
+    comboBox->addItem("Kernel大小5", 0);
+    comboBox->addItem("Kernel大小3", 1);
+    addMyWidget(comboBox);
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_spinBox_number(int)));
+
+    QSignalMapper *signalMapper = new QSignalMapper(this);
+    for (int i = 0; i < 5; i++)
+    {
+        for (int j = 0; j < 5; j++)
+        {
+            QSpinBox *widget = new QSpinBox;
+            widget->setMaximum(20);
+            widget->setMinimum(-20);
+            if (i > 2 || j > 2)
+                spinBoxes.push_back(widget);
+            addMyWidget(widget, i+1, j, 1, 1);
+            connect(widget, SIGNAL(valueChanged(int)), this , SLOT(ui_change_val2(int)));
+            connect(widget, SIGNAL(valueChanged(int)), signalMapper, SLOT(map()));
+            signalMapper->setMapping(widget, i*5+j);
+        }
+    }
+    connect(signalMapper, SIGNAL(mapped(int)), this, SLOT(ui_change_kernel(int)));
+}
+
+U_Kernel_d MainWindow::constructKernel_d()
+{
+    U_Kernel_d kernel;
+    for (int i = 0; i < ui_val1; i++)
+    {
+        std::vector<double> line;
+        for (int j = 0; j < ui_val1; j++)
+        {
+            line.push_back(inputKernel[i*5+j]);
+        }
+        kernel.push_back(line);
+    }
+    return kernel;
+}
+
+QSlider *MainWindow::ui_mySlider(int minimum, int maximum, int singleStep)
+{
+    QSlider *slider1 = new QSlider(Qt::Horizontal);
+    QSpinBox *spinBox1 = new QSpinBox;
+
+    slider1->setMinimum(minimum);
+    slider1->setMaximum(maximum);
+    slider1->setSingleStep(singleStep);
+    spinBox1->setMinimum(minimum);
+    spinBox1->setMaximum(maximum);
+    addMyWidget(spinBox1);
+    addMyWidget(slider1);
+
+    connect(slider1, SIGNAL(valueChanged(int)), spinBox1, SLOT(setValue(int)));
+    connect(spinBox1, SIGNAL(valueChanged(int)), slider1, SLOT(setValue(int)));
+
+    return slider1;
+}
+
+/************************************************
+ * Signal slot function with custom input
+ ************************************************/
+void MainWindow::slot_channelSeperation()
+{
+    switch (ui_val1)
+    {
+    case 0:
+        showImage(F_seperation(getCurrentImage(), F_R));
+        break;
+    case 1:
+        showImage(F_seperation(getCurrentImage(), F_G));
+        break;
+    case 2:
+        showImage(F_seperation(getCurrentImage(), F_B));
+        break;
+    default:
+        break;
+    }
+    showResponseTime();
+    showTip("上次操作：通道分离");
+}
+
+void MainWindow::on_actionChannelSeperation_triggered()
+{
+    QComboBox *comboBox = new QComboBox;
+    comboBox->addItem("红", 0);
+    comboBox->addItem("绿", 1);
+    comboBox->addItem("蓝", 2);
+    addMyWidget(comboBox);
+
+    QDialogButtonBox *dialogButtonBox = createButtonBox();
+
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(slot_channelSeperation()));
+    connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+}
+
+void MainWindow::slot_adjustHSB()
+{
+    showImage(F_adjustHSB(getCurrentImage(), ui_val1, ui_val2, ui_val3));
+    showResponseTime();
+    showTip("上次操作：调整HSB");
+}
+
+void MainWindow::slot_adjustHSB_preview()
+{
+    showThumbnail(F_adjustHSB(getCurrentImage(), ui_val1, ui_val2, ui_val3));
+}
+
+void MainWindow::on_actionadjustHSB_triggered()
+{
+    ui_clear();
+    QSlider *slider1 = ui_mySlider(-180, 180, 5),
+            *slider2 = ui_mySlider(-100, 100, 5),
+            *slider3 = ui_mySlider(-100, 100, 5);
+
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_adjustHSB_preview()));
+
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_adjustHSB_preview()));
+
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(slot_adjustHSB_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_adjustHSB()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+}
+
+void MainWindow::slot_convolution()
+{
+    U_Kernel_d kernel = constructKernel_d();
+
+    showImage(F_convolution(getCurrentImage(), kernel, U_getKernelSum(kernel)));
+    showResponseTime();
+    showTip("上次操作：自定义滤波");
+}
+
+void MainWindow::on_actionCustom_triggered()
+{
+    ui_clear();
+    ui_input_kernel();
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_convolution()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+}
+
+void MainWindow::slot_doubleTreshold_preview()
+{
+    int val1 = std::min(ui_val1, ui_val2),
+        val2 = std::max(ui_val1, ui_val2);
+
+    showThumbnail(F_binarization_double(getCurrentImage(), val1, val2));
+}
+
+void MainWindow::slot_doubleTreshold()
+{
+    int val1 = std::min(ui_val1, ui_val2),
+        val2 = std::max(ui_val1, ui_val2);
+    showImage(F_binarization_double(getCurrentImage(), val1, val2));
+    showResponseTime();
+    showTip("上次操作：双阈值二值化");
+}
+
+void MainWindow::on_actionDoubleThreshold_triggered()
+{
+    ui_clear();
+
+    QSlider *slider1 = ui_mySlider(0, 255, 1);
+    QSlider *slider2 = ui_mySlider(0, 255, 1);
+
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_doubleTreshold_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_doubleTreshold_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_doubleTreshold()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
 }

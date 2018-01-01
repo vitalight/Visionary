@@ -3,6 +3,32 @@ using namespace std;
 
 static const double PI = 4.0*atan(1.0);
 
+int U_getKernelSum(U_Kernel_i kernel)
+{
+    int sum = 0;
+    for (unsigned int i=0; i<kernel.size(); i++)
+    {
+        for (unsigned int j = 0; j < kernel.size(); j++)
+        {
+            sum += kernel[i][j];
+        }
+    }
+    return sum;
+}
+
+double U_getKernelSum(U_Kernel_d kernel)
+{
+    double sum = 0;
+    for (unsigned int i=0; i<kernel.size(); i++)
+    {
+        for (unsigned int j = 0; j < kernel.size(); j++)
+        {
+            sum += kernel[i][j];
+        }
+    }
+    return sum;
+}
+
 vector<vector<double>> U_getGaussianKernel(int size, double sigma)
 {
     vector<vector<double>> kernel;

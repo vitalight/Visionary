@@ -8,8 +8,10 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QSpinBox>
+#include <QSignalMapper>
 
 #include <vector>
+#include <util.h>
 
 //#define __RELEASE__
 #define HISTORY_MAX (8)
@@ -44,6 +46,10 @@ private slots:
     void ui_change_val1(int val);
     void ui_change_val2(int val);
     void ui_change_val3(int val);
+    void ui_change_spinBox_number(int val);
+    void ui_change_kernel(int val);
+    void ui_input_kernel();
+    QSlider *ui_mySlider(int minimum, int maximum, int singleStep);
 
     void on_actionOpen_triggered();
 
@@ -90,6 +96,8 @@ private slots:
 
     void on_actionOtsu_triggered();
 
+    void slot_doubleTreshold_preview();
+    void slot_doubleTreshold();
     void on_actionDoubleThreshold_triggered();
 
     void on_actionBlurMean_triggered();
@@ -134,6 +142,9 @@ private slots:
 
     void on_actionReconstruct_triggered();
 
+    void slot_convolution();
+    void on_actionCustom_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -144,7 +155,12 @@ private:
     int ui_val1 = 0,
         ui_val2 = 0,
         ui_val3 = 0;
+    std::vector<double> inputKernel;
     std::vector<QWidget *> widgetList;
+    std::vector<QWidget *> spinBoxes;
+    void addMyWidget(QWidget *widget);
+    void addMyWidget(QWidget *widget, int row, int column, int rowSpan, int columnSpan);
+    U_Kernel_d constructKernel_d();
 
     QDialogButtonBox *createButtonBox();
 

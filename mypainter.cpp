@@ -10,7 +10,6 @@ MyPainter::MyPainter(QWidget *parent)
 
 void MyPainter::paintEvent(QPaintEvent *event)
 {
-    qDebug()<<"paintEvent triggered.";
     if (!histogram.size())
         return;
 

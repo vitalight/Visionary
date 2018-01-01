@@ -814,7 +814,7 @@ QImage *F_equalizeHistogram(QImage *image)
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/
 // [reminder] kernelSum is necessary because some call need no normalization
-QImage *F_convolution(QImage *image, F_Kernel_d kernel, int kernelSum)
+QImage *F_convolution(QImage *image, U_Kernel_d kernel, double kernelSum)
 {
     TIMMING_BEGIN;
     int halfSize = kernel.size()/2,
@@ -854,7 +854,7 @@ QImage *F_convolution(QImage *image, F_Kernel_d kernel, int kernelSum)
 // 均值
 QImage *F_blur_mean(QImage *image, int radius)
 {
-    F_Kernel_d kernel = U_getFlatKernel_d(radius);
+    U_Kernel_d kernel = U_getFlatKernel_d(radius);
     return F_convolution(image, kernel, radius*radius);
 }
 
@@ -902,16 +902,16 @@ QImage *F_blur_median(QImage *image, int radius)
 // 高斯
 QImage *F_blur_gaussian(QImage *image)
 {
-    F_Kernel_d kernel = U_getGaussianKernel(5, 1);
+    U_Kernel_d kernel = U_getGaussianKernel(5, 1);
     return F_convolution(image, kernel, 1);
 }
 
 // 锐化（自定）
 QImage *F_sharpen(QImage *image)
 {
-    F_Kernel_d kernel = {{0, -1,  0},
-                                     {-1, 5, -1},
-                                     {0, -1,  0}};
+    U_Kernel_d kernel = {{0, -1,  0},
+                         {-1, 5, -1},
+                         {0, -1,  0}};
     return F_convolution(image, kernel, 1);
 }
 
@@ -922,10 +922,10 @@ QImage *F_sharpen(QImage *image)
 QImage *F_detectEdge_sobel(QImage *image)
 {
     TIMMING_BEGIN;
-    F_Kernel_i kernel_x = {{-1, 0, 1},
+    U_Kernel_i kernel_x = {{-1, 0, 1},
                                     {-2, 0, 2},
                                     {-1, 0, 1}};
-    F_Kernel_i kernel_y = {{-1, -2, -1},
+    U_Kernel_i kernel_y = {{-1, -2, -1},
                                     { 0,  0,  0},
                                     { 1,  2,  1}};
 
@@ -972,7 +972,7 @@ QImage *F_detectEdge_sobel(QImage *image)
 // 拉普拉斯
 QImage *F_detectEdge_laplacian(QImage *image)
 {
-    F_Kernel_d kernel = {{0, 1, 0},
+    U_Kernel_d kernel = {{0, 1, 0},
                                      {1,-4, 1},
                                      {0, 1, 0}};
     return F_convolution(image, kernel, 1);
@@ -983,13 +983,13 @@ QImage *F_detectEdge_canny(QImage *image)
     TIMMING_BEGIN;
     int threshold_low = 55, threshold_high = 90;
 
-    F_Kernel_i kernel_x = {{-1,  0,  1},
+    U_Kernel_i kernel_x = {{-1,  0,  1},
                                     {-2,  0,  2},
                                     {-1,  0,  1}};
-    F_Kernel_i kernel_y = {{-1, -2, -1},
+    U_Kernel_i kernel_y = {{-1, -2, -1},
                                     { 0,  0,  0},
                                     { 1,  2,  1}};
-    F_Kernel_i direction;
+    U_Kernel_i direction;
 
     int halfSize = 1,
         sum_x, sum_y,
@@ -1173,7 +1173,7 @@ QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo)
  * 8. 二值数学形态学（结构元允许用户自定义）
 ****************************************************************/
 // 膨胀
-QImage *F_dilation(QImage *image, F_Kernel_i kernel)
+QImage *F_dilation(QImage *image, U_Kernel_i kernel)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
@@ -1208,7 +1208,7 @@ QImage *F_dilation(QImage *image, F_Kernel_i kernel)
 }
 
 // 腐蚀
-QImage *F_erosion(QImage *image, F_Kernel_i kernel)
+QImage *F_erosion(QImage *image, U_Kernel_i kernel)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
@@ -1243,13 +1243,13 @@ QImage *F_erosion(QImage *image, F_Kernel_i kernel)
 }
 
 // 开操作
-QImage *F_open(QImage *image, F_Kernel_i kernel)
+QImage *F_open(QImage *image, U_Kernel_i kernel)
 {
     return F_dilation(F_erosion(image, kernel), kernel);
 }
 
 // 闭操作
-QImage *F_close(QImage *image, F_Kernel_i kernel)
+QImage *F_close(QImage *image, U_Kernel_i kernel)
 {
     return F_erosion(F_dilation(image, kernel), kernel);
 }
@@ -1339,7 +1339,7 @@ QImage *F_intersection(QImage *image1, QImage *image2)
     return newImage;
 }
 
-QImage *F_hitAndMiss(QImage *image, F_Kernel_i kernel)
+QImage *F_hitAndMiss(QImage *image, U_Kernel_i kernel)
 {
     TIMMING_BEGIN;
     QImage *newImage = F_NEW_IMAGE(image);
@@ -1376,12 +1376,12 @@ QImage *F_hitAndMiss(QImage *image, F_Kernel_i kernel)
     return newImage;
 }
 // 细化
-QImage *F_thinning(QImage *image, F_Kernel_i kernel)
+QImage *F_thinning(QImage *image, U_Kernel_i kernel)
 {
     return F_minus(image, F_hitAndMiss(image, kernel));
 }
 // 粗化
-QImage *F_thickening(QImage *image, F_Kernel_i kernel)
+QImage *F_thickening(QImage *image, U_Kernel_i kernel)
 {
     return F_union(image, F_hitAndMiss(image, kernel));
 }
@@ -1425,7 +1425,7 @@ QImage *F_distance(QImage *image)
 {
     TIMMING_BEGIN;
 //    F_Kernel_i kernel = U_getFlatKernel_i(3);
-    F_Kernel_i kernel = {{0, 1, 0},
+    U_Kernel_i kernel = {{0, 1, 0},
                          {1, 1, 1},
                          {0, 1, 0}};
     QImage *newImage = F_NEW_IMAGE(image),
@@ -1622,7 +1622,7 @@ QImage *F_reconstruct(QImage *marker, QImage *mask)
     QImage *newImage = new QImage(*marker);
     QRgb *maskBits = (QRgb*)mask->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    F_Kernel_i kernel = {{0, 1, 0},
+    U_Kernel_i kernel = {{0, 1, 0},
                          {1, 1, 1},
                          {0, 1, 0}};
     int halfSize = kernel.size()/2,

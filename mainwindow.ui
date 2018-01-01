@@ -182,18 +182,21 @@ border-color: rgb(0, 0, 0);</string>
      <string/>
     </property>
    </widget>
-   <widget class="QWidget" name="verticalLayoutWidget">
+   <widget class="QWidget" name="gridLayoutWidget">
     <property name="geometry">
      <rect>
       <x>920</x>
       <y>20</y>
       <width>241</width>
-      <height>231</height>
+      <height>271</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout">
-     <property name="sizeConstraint">
-      <enum>QLayout::SetNoConstraint</enum>
+    <layout class="QGridLayout" name="gridLayout">
+     <property name="horizontalSpacing">
+      <number>6</number>
+     </property>
+     <property name="verticalSpacing">
+      <number>10</number>
      </property>
     </layout>
    </widget>
@@ -206,7 +209,7 @@ border-color: rgb(0, 0, 0);</string>
    <zorder>whitebg</zorder>
    <zorder>tip</zorder>
    <zorder>histogramArea</zorder>
-   <zorder>verticalLayoutWidget</zorder>
+   <zorder>gridLayoutWidget</zorder>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -272,6 +275,7 @@ border-color: rgb(0, 0, 0);</string>
      <addaction name="actionSharpen"/>
      <addaction name="actionBlurMean"/>
      <addaction name="actionBlurMedian"/>
+     <addaction name="actionCustom"/>
     </widget>
     <widget class="QMenu" name="menuOperation">
      <property name="geometry">
@@ -631,6 +635,11 @@ border-color: rgb(0, 0, 0);</string>
   <action name="actionReconstruct">
    <property name="text">
     <string>形态学重构</string>
+   </property>
+  </action>
+  <action name="actionCustom">
+   <property name="text">
+    <string>自定义滤波</string>
    </property>
   </action>
  </widget>
