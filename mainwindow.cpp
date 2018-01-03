@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standered.png"
-#define DEFAULT_FUNCTION on_actionThining_triggered()
+#define DEFAULT_FUNCTION on_actionadjustGradation_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -26,7 +26,9 @@ MainWindow::MainWindow(QWidget *parent) :
     qlabel->setAlignment(Qt::AlignCenter);
     qlabel->setMouseTracking(true);                 // 鼠标跟踪
 
+    ui->responseTime->setVisible(false);
     ui->histogramArea->setVisible(false);           // 默认隐藏直方图
+    ui->gridLayout->setHorizontalSpacing(1);
 
     // 初始化InputKernel
     for (int i = 0; i < 25; i++)
@@ -35,7 +37,6 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 #ifndef __RELEASE__
     on_actionOpen_triggered();
-    on_actionOtsu_triggered();
     DEFAULT_FUNCTION;
 #endif
 }
@@ -87,6 +88,7 @@ void MainWindow::showImage_without_history(QImage *image)
         qlabel->clear();
         return;
     }
+
     setCurrentImage(image);
     images[imageIndex].thumbnail = autoscale();
     updateHistogram();
@@ -110,7 +112,7 @@ void MainWindow::showImage(QImage *image)
         ui->actionUndo->setEnabled(true);
     }
 
-    if ((int)images[imageIndex].historyImages.size() > images[imageIndex].historyIndex + 2) {
+    if ((int)images[imageIndex].historyImages.size() > images[imageIndex].historyIndex + 1) {
         images[imageIndex].historyImages[++images[imageIndex].historyIndex] = image;
         images[imageIndex].historyImages.erase(images[imageIndex].historyImages.begin()+images[imageIndex].historyIndex+1, images[imageIndex].historyImages.end());
         ui->actionRedo->setEnabled(false);
@@ -145,10 +147,8 @@ QImage MainWindow::autoscale(QImage *image)
         qDebug()<<"[error] autoscale: null getCurrentImage()";
         exit(-1);
     }
-    // todo: debug
-    // Qt::SmoothTransformation
+
     QImage newImage;
-    //return newImage;
     if (showScale) {
         if (image) {
             newImage = image->scaled(ui->whitebg->geometry().height(), ui->whitebg->geometry().height(),
@@ -511,6 +511,7 @@ void MainWindow::on_actionReconstruct_triggered()
 QDialogButtonBox *MainWindow::createButtonBox()
 {
     QDialogButtonBox *dialogButtonBox = new QDialogButtonBox;
+    dialogButtonBox->setStyleSheet("top:30px");
     addMyWidget(dialogButtonBox);
     dialogButtonBox->addButton("确定", QDialogButtonBox::AcceptRole);
     dialogButtonBox->addButton("取消", QDialogButtonBox::RejectRole);
@@ -523,7 +524,8 @@ QDialogButtonBox *MainWindow::createButtonBox()
 void MainWindow::addMyWidget(QWidget *widget)
 {
     widgetList.push_back(widget);
-    ui->gridLayout->addWidget(widget, widgetList.size()-1, 0, 2, -1);
+//    ui->gridLayout->addWidget(widget, widgetList.size()-1, 0, 2, -1);
+    ui->gridLayout->addWidget(widget, ui->gridLayout->rowCount(), 0, 2, -1);
 }
 
 void MainWindow::addMyWidget(QWidget *widget, int row, int column, int rowSpan, int columnSpan)
@@ -664,17 +666,25 @@ U_Kernel_d MainWindow::constructKernel_d()
     return kernel;
 }
 
-QSlider *MainWindow::ui_mySlider(int minimum, int maximum, int singleStep)
+QSlider *MainWindow::ui_mySlider(int minimum, int maximum, int singleStep, QString name)
 {
-    QSlider *slider1 = new QSlider(Qt::Horizontal);
     QSpinBox *spinBox1 = new QSpinBox;
+    spinBox1->setMinimum(minimum);
+    spinBox1->setMaximum(maximum);
+    //addMyWidget(spinBox1);
 
+    if (name != "") {
+        QLabel *label = new QLabel;
+        label->setStyleSheet("color:white");
+        label->setText(name);
+        addMyWidget(label, ui->gridLayout->rowCount(), 0, 1, 1);
+        addMyWidget(spinBox1, ui->gridLayout->rowCount()-1, 1, 1, 3);
+    }
+
+    QSlider *slider1 = new QSlider(Qt::Horizontal);
     slider1->setMinimum(minimum);
     slider1->setMaximum(maximum);
     slider1->setSingleStep(singleStep);
-    spinBox1->setMinimum(minimum);
-    spinBox1->setMaximum(maximum);
-    addMyWidget(spinBox1);
     addMyWidget(slider1);
 
     connect(slider1, SIGNAL(valueChanged(int)), spinBox1, SLOT(setValue(int)));
@@ -727,6 +737,7 @@ void MainWindow::slot_channelSeperation()
 void MainWindow::on_actionChannelSeperation_triggered()
 {
     ui_clear();
+    ui_val1 = 0;
     QComboBox *comboBox = new QComboBox;
     comboBox->addItem("红", 0);
     comboBox->addItem("绿", 1);
@@ -740,6 +751,7 @@ void MainWindow::on_actionChannelSeperation_triggered()
     connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(slot_channelSeperation()));
     connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
 
+    slot_channelSeperation_preview();
     showTip("正在进行：通道分离");
 }
 
@@ -915,14 +927,16 @@ void MainWindow::on_actionResize_triggered()
     ui_val1 = getCurrentImage()->width();
     ui_val2 = getCurrentImage()->height();
 
-    QSpinBox *spinBox1 = ui_mySpinBox(1, 2000, getCurrentImage()->width()),
-             *spinBox2 = ui_mySpinBox(1, 2000, getCurrentImage()->height());
+    QSlider *slider1 = ui_mySlider(1, 2000, 1),
+            *slider2 = ui_mySlider(1, 2000, 1);
+    slider1->setValue(getCurrentImage()->width());
+    slider2->setValue(getCurrentImage()->height());
 
-    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
-    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(slot_resize_preview()));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_resize_preview()));
 
-    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
-    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(slot_resize_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_resize_preview()));
 
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_resize()));
@@ -1145,6 +1159,7 @@ void MainWindow::on_actionContrastLinear_triggered()
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_contrastLinear()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    slot_contrastLinear_preview();
     showTip("正在进行：线性对比度调节");
 }
 
@@ -1192,6 +1207,7 @@ void MainWindow::on_actionContrastSectionLinear_triggered()
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_contrastSectionLinear()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    slot_contrastSectionLinear_preview();
     showTip("正在进行：分段线性调节");
 }
 
@@ -1240,5 +1256,48 @@ void MainWindow::on_actionContrastNonlinear_triggered()
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_contrastNonlinear()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+
+    slot_contrastNonlinear_preview();
     showTip("正在进行：分段线性调节");
+}
+
+void MainWindow::slot_colorGradiation_preview()
+{
+    showThumbnail(F_colorGradation(getCurrentImage(), ui_val1, ui_val2/100.0, ui_val3));
+}
+
+void MainWindow::slot_colorGradiation()
+{
+    showImage(F_colorGradation(getCurrentImage(), ui_val1, ui_val2/100.0, ui_val3));
+    showResponseTime();
+    showTip("上次操作：色阶调节");
+}
+
+void MainWindow::on_actionadjustGradation_triggered()
+{
+    ui_clear();
+    ui_val1 = 0;
+    ui_val2 = 100;
+    ui_val3 = 255;
+
+    QSlider *slider1 = ui_mySlider(0, 253, 1, "阴影"),
+            *slider2 = ui_mySlider(1, 1000, 1, "中间调"),
+            *slider3 = ui_mySlider(2, 255, 1, "高光");
+    slider1->setValue(0);
+    slider2->setValue(100);
+    slider3->setValue(255);
+
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_colorGradiation_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_colorGradiation_preview()));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(slot_colorGradiation_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_colorGradiation()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+
+    slot_contrastNonlinear_preview();
+    showTip("正在进行：色阶调节");
 }

@@ -93,6 +93,9 @@ void F_getHistogram_rgb(QImage *image, std::vector<int> &r_h, std::vector<int> &
 // 直方图均衡化
 QImage *F_equalizeHistogram(QImage *image);
 
+// 色阶调整
+QImage *F_colorGradation(QImage *image, int shadow, double midtone, int highlight);
+
 /***************************************************************
  * 5. 平滑滤波器（卷积核允许用户自定义）
 ****************************************************************/

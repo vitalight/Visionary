@@ -50,7 +50,7 @@ private slots:
     void ui_change_spinBox_number(int val);
     void ui_change_kernel(int val);
     void ui_input_kernel();
-    QSlider *ui_mySlider(int minimum, int maximum, int singleStep);
+    QSlider *ui_mySlider(int minimum, int maximum, int singleStep, QString name = "");
     QSpinBox *ui_mySpinBox(int minimum, int maximum, int value = 0);
 
     void on_actionOpen_triggered();
@@ -170,6 +170,10 @@ private slots:
     void slot_contrastNonlinear_preview();
     void slot_contrastNonlinear();
     void on_actionContrastNonlinear_triggered();
+
+    void slot_colorGradiation_preview();
+    void slot_colorGradiation();
+    void on_actionadjustGradation_triggered();
 
 private:
     Ui::MainWindow *ui;

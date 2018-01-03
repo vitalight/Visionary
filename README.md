@@ -2,11 +2,33 @@
 
 This is the SJTU Computer Vision final homework, a Photoshop-like software named Visionary.
 
+
+
+## Test Record
+
+- [x] delete 新建
+- [x] 缩放 改slider 初始值似乎不对
+- [x] 坏死了， 估计是>8之后再撤销就不对
+
+
+
+## Bug Repair
+
+- [x] timming取消，或者放mainwindow
+- [x] 每次都要重置为0 kernel
+- [x] 指数变换、log的曲线不太对
+- [x] 细化算法 正确？
+- [x] 骨架算法
+- [x] 骨架重构
+
+
+
 ## Todo List
+
 - 总体功能
-  - [ ] timming取消，或者放mainwindow
-  - [ ] 每次都要重置为0 kernel
-  - [ ] 指数变换、log的曲线不太对
+  - [x] timming取消，或者放mainwindow
+  - [x] 每次都要重置为0 kernel
+  - [x] 指数变换、log的曲线不太对
   - [x] 右边输入栏（像素值）
   - [x] 实时显示
   - [x] 双图片显示
@@ -43,8 +65,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] 开、闭 
   - [x] 细化、粗化 
   - [x] 距离变换
-  - [x] 骨架 X有bug
-  - [x] 骨架重构 X
+  - [x] 骨架
+  - [x] 骨架重构 
   - [x] 二值形态学重构
 - 灰度数学形态学
   - [x] 膨胀、腐蚀
@@ -52,13 +74,6 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] 形态学重构
   - [ ] 分水岭算法
 
-
-
-##　Underlying problem
-
-showResponseTime() don't work well
-
-图像缩放旋转的时候算入透明度
 
 
 

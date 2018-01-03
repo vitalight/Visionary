@@ -852,6 +852,11 @@ QImage *F_contrast_exponential(QImage *image, double power)
 vector<double> F_getHistogram(QImage *image)
 {
     vector<double> histogram(256);
+
+    if (!image) {
+        return histogram;
+    }
+
     QRgb *bits = (QRgb *)image->constBits();
     int index,
         width = image->width(),
@@ -940,6 +945,35 @@ QImage *F_equalizeHistogram(QImage *image)
                                   b_table[qBlue(bits[index])]);
         }
     }
+    TIMMING_END;
+    return newImage;
+}
+
+
+// 色阶调整
+QImage *F_colorGradation(QImage *image, int shadow, double midtone, int highlight)
+{
+    TIMMING_BEGIN;
+
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), r, g, b;
+
+    double diff = highlight - shadow;
+    double power = std::min(1.0/midtone, 100.0);
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = qBound(0, int(255 * pow((qRed(bits[y*width+x]) - shadow)/diff, power)), 255);
+            g = qBound(0, int(255 * pow((qGreen(bits[y*width+x]) - shadow)/diff, power)), 255);
+            b = qBound(0, int(255 * pow((qBlue(bits[y*width+x]) - shadow)/diff, power)), 255);
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
     TIMMING_END;
     return newImage;
 }
@@ -1731,7 +1765,10 @@ QImage *F_skeletonReconstruct(QImage *image)
                 {
                     for (int j = -color; j <= color; j++)
                     {
-                        Q_ASSERT(U_legal(width, height, x+j, y+i));
+                        if (!U_legal(width, height, x+j, y+i)) {
+                            //qDebug()<<"error"<<x<<y<<i<<j;
+                            continue;
+                        }
                         newBits[(y+i)*width+x+j] = qRgb(255, 255, 255);
                     }
                 }
