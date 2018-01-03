@@ -1068,9 +1068,9 @@ QImage *F_blur_median(QImage *image, int radius)
 }
 
 // 高斯
-QImage *F_blur_gaussian(QImage *image)
+QImage *F_blur_gaussian(QImage *image, int radius, double sigma)
 {
-    U_Kernel_d kernel = U_getGaussianKernel(5, 1);
+    U_Kernel_d kernel = U_getGaussianKernel(radius, sigma);
     return F_convolution(image, kernel, 1);
 }
 
@@ -1316,7 +1316,6 @@ QImage *F_detectEdge_canny(QImage *image)
     return newImage;
 }
 
-// [todo] blur or not ?
 QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo)
 {
     switch (algo)

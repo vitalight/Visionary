@@ -13,7 +13,6 @@
 #include <vector>
 #include <util.h>
 
-//#define __RELEASE__
 #define HISTORY_MAX (8)
 #define TAB_OFFSET (28)
 
@@ -65,6 +64,8 @@ private slots:
 
     void on_actionAbout_triggered();
 
+    void slot_blur_preview();
+    void slot_blur();
     void on_actionBlur_triggered();
 
     void on_actionSharpen_triggered();

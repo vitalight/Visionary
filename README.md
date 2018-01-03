@@ -11,6 +11,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - [x] 坏死了， 估计是>8之后再撤销就不对
 - [x] 界面优化完成
 - [ ] 分水岭算法/霍夫变换
+- [ ] 眼球图片处理
+- [ ] 形态学重构
 
 
 

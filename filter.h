@@ -103,7 +103,7 @@ QImage *F_convolution(QImage *image, U_Kernel_d kernel, double kernelSum);
 // 均值、中值、高斯、锐化（自做）
 QImage *F_blur_mean(QImage *image, int radius);
 QImage *F_blur_median(QImage *image, int radius);
-QImage *F_blur_gaussian(QImage *image);
+QImage *F_blur_gaussian(QImage *image, int radius = 5, double sigma = 1.0);
 QImage *F_sharpen(QImage *image);
 
 /***************************************************************

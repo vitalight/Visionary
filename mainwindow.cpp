@@ -8,8 +8,9 @@
 #include <QInputDialog>
 #include <QDebug>
 
+//#define __RELEASE__
 #define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standered.png"
-#define DEFAULT_FUNCTION on_actionadjustGradation_triggered()
+#define DEFAULT_FUNCTION on_actionBlur_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -330,14 +331,6 @@ void MainWindow::on_actionDecolor_triggered()
     showTip("上次操作：去色");
 }
 
-void MainWindow::on_actionBlur_triggered()
-{
-    ui_clear();
-    showImage(F_blur_gaussian(getCurrentImage()));
-    showResponseTime();
-    showTip("上次操作：高斯模糊");
-}
-
 void MainWindow::on_actionBlurMean_triggered()
 {
     ui_clear();
@@ -501,6 +494,11 @@ void MainWindow::on_actionSkeletonReconstruct_triggered()
 void MainWindow::on_actionReconstruct_triggered()
 {
     ui_clear();
+    if (!getAnotherImage()) {
+        QMessageBox::about(this, "非法操作",
+                           "另一图层暂无图像。");
+        return;
+    }
     showImage(F_reconstruct(getCurrentImage(), getAnotherImage()));
     showResponseTime();
     showTip("上次操作：形态学重构");
@@ -671,7 +669,7 @@ QSlider *MainWindow::ui_mySlider(int minimum, int maximum, int singleStep, QStri
     QSpinBox *spinBox1 = new QSpinBox;
     spinBox1->setMinimum(minimum);
     spinBox1->setMaximum(maximum);
-    //addMyWidget(spinBox1);
+    spinBox1->setSingleStep(singleStep);
 
     if (name != "") {
         QLabel *label = new QLabel;
@@ -687,6 +685,7 @@ QSlider *MainWindow::ui_mySlider(int minimum, int maximum, int singleStep, QStri
     slider1->setMinimum(minimum);
     slider1->setMaximum(maximum);
     slider1->setSingleStep(singleStep);
+    slider1->setPageStep(singleStep);
     addMyWidget(slider1);
 
     connect(slider1, SIGNAL(valueChanged(int)), spinBox1, SLOT(setValue(int)));
@@ -1307,4 +1306,41 @@ void MainWindow::on_actionadjustGradation_triggered()
 
     slot_contrastNonlinear_preview();
     showTip("正在进行：色阶调节");
+}
+
+void MainWindow::slot_blur_preview()
+{
+    showThumbnail(F_blur_gaussian(getCurrentImage(), ui_val1%2==1?ui_val1:ui_val1-1, ui_val2/10.0));
+}
+
+void MainWindow::slot_blur()
+{
+    showImage(F_blur_gaussian(getCurrentImage(), ui_val1%2==1?ui_val1:ui_val1-1, ui_val2/10.0));
+    showResponseTime();
+    showTip("上次操作：高斯模糊");
+}
+
+void MainWindow::on_actionBlur_triggered()
+{
+    ui_clear();
+
+    ui_val1 = 3;
+    ui_val2 = 1;
+
+    QSlider *slider1 = ui_mySlider(1, 11, 2, "模糊半径"),
+            *slider2 = ui_mySlider(1, 30, 1, "模糊强度");
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_blur_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_blur_preview()));
+
+    slider1->setValue(3);
+    slider2->setValue(1);
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_blur()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+
+    slot_contrastNonlinear_preview();
+    showTip("正在进行：高斯模糊");
 }

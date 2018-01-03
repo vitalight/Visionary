@@ -28,13 +28,15 @@ SOURCES += \
         mainwindow.cpp \
     filter.cpp \
     util.cpp \
-    mypainter.cpp
+    mypainter.cpp \
+    watershed.cpp
 
 HEADERS += \
         mainwindow.h \
     filter.h \
     util.h \
-    mypainter.h
+    mypainter.h \
+    watershed.h
 
 FORMS += \
         mainwindow.ui
