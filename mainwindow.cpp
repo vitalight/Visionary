@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standered.png"
-#define DEFAULT_FUNCTION on_actionContrastNonlinear_triggered()
+#define DEFAULT_FUNCTION on_actionThining_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,7 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 #ifndef __RELEASE__
     on_actionOpen_triggered();
-    on_actionShowHistogram_toggled(true);
+    on_actionOtsu_triggered();
     DEFAULT_FUNCTION;
 #endif
 }
@@ -324,26 +324,15 @@ void MainWindow::on_actionAbout_triggered()
  ************************************************/
 void MainWindow::on_actionDecolor_triggered()
 {
+    ui_clear();
     showImage(F_decolor(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：去色");
 }
 
-//void MainWindow::on_actionBinarization_triggered()
-//{
-//    bool ok = false;
-//    int threshold = QInputDialog::getInt(this,tr("Visionary"),
-//                                         tr("请输入阈值"),
-//                                         0, 0, 255,
-//                                         1, &ok);
-//    if (!ok)
-//        return;
-//    showImage(F_binarization(getCurrentImage(), threshold));
-//    showResponseTime();
-//}
-
 void MainWindow::on_actionBlur_triggered()
 {
+    ui_clear();
     showImage(F_blur_gaussian(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：高斯模糊");
@@ -351,6 +340,7 @@ void MainWindow::on_actionBlur_triggered()
 
 void MainWindow::on_actionBlurMean_triggered()
 {
+    ui_clear();
     showImage(F_blur_mean(getCurrentImage(), 5));
     showResponseTime();
     showTip("上次操作：中值模糊");
@@ -358,6 +348,7 @@ void MainWindow::on_actionBlurMean_triggered()
 
 void MainWindow::on_actionBlurMedian_triggered()
 {
+    ui_clear();
     showImage(F_blur_median(getCurrentImage(), 3));
     showResponseTime();
     showTip("上次操作：均值模糊");
@@ -365,6 +356,7 @@ void MainWindow::on_actionBlurMedian_triggered()
 
 void MainWindow::on_actionSharpen_triggered()
 {
+    ui_clear();
     showImage(F_sharpen(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：锐化");
@@ -374,6 +366,7 @@ void MainWindow::on_actionSharpen_triggered()
 
 void MainWindow::on_actionEqualizeHistogram_triggered()
 {
+    ui_clear();
     showImage(F_equalizeHistogram(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：直方图均衡化");
@@ -381,6 +374,7 @@ void MainWindow::on_actionEqualizeHistogram_triggered()
 
 void MainWindow::on_actionDetectEdgeSobel_triggered()
 {
+    ui_clear();
     showImage(F_detectEdge(getCurrentImage(), F_SOBEL));
     showResponseTime();
     showTip("上次操作：Sobel边缘检测");
@@ -388,6 +382,7 @@ void MainWindow::on_actionDetectEdgeSobel_triggered()
 
 void MainWindow::on_actionDetectEdgeLaplacian_triggered()
 {
+    ui_clear();
     showImage(F_detectEdge(getCurrentImage(), F_LAPLACIAN));
     showResponseTime();
     showTip("上次操作：拉普拉斯边缘检测");
@@ -395,6 +390,7 @@ void MainWindow::on_actionDetectEdgeLaplacian_triggered()
 
 void MainWindow::on_actionDetectEdgeCanny_triggered()
 {
+    ui_clear();
     showImage(F_detectEdge(getCurrentImage(), F_CANNY));
     showResponseTime();
     showTip("上次操作：Canny边缘检测");
@@ -402,6 +398,7 @@ void MainWindow::on_actionDetectEdgeCanny_triggered()
 
 void MainWindow::on_actionOtsu_triggered()
 {
+    ui_clear();
     showImage(F_binarization_Otsu(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：大津算法二值化");
@@ -409,6 +406,7 @@ void MainWindow::on_actionOtsu_triggered()
 
 void MainWindow::on_actionAdd_triggered()
 {
+    ui_clear();
     if (!getAnotherImage()) {
         QMessageBox::about(this, "非法操作",
                            "另一图层暂无图像。");
@@ -421,6 +419,7 @@ void MainWindow::on_actionAdd_triggered()
 
 void MainWindow::on_actionMinus_triggered()
 {
+    ui_clear();
     if (!getAnotherImage()) {
         QMessageBox::about(this, "非法操作",
                            "另一图层暂无图像。");
@@ -433,6 +432,7 @@ void MainWindow::on_actionMinus_triggered()
 
 void MainWindow::on_actionTimes_triggered()
 {
+    ui_clear();
     if (!getAnotherImage()) {
         QMessageBox::about(this, "非法操作",
                            "另一图层暂无图像。");
@@ -476,6 +476,7 @@ void MainWindow::on_actionAutoscale_toggled(bool arg1)
 
 void MainWindow::on_actionSkeletonize_triggered()
 {
+    ui_clear();
     showImage(F_skeletonize(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：骨架");
@@ -483,6 +484,7 @@ void MainWindow::on_actionSkeletonize_triggered()
 
 void MainWindow::on_actionContrastStretch_triggered()
 {
+    ui_clear();
     showImage(F_contrastStretch(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：对比度拉伸");
@@ -490,6 +492,7 @@ void MainWindow::on_actionContrastStretch_triggered()
 
 void MainWindow::on_actionSkeletonReconstruct_triggered()
 {
+    ui_clear();
     showImage(F_skeletonReconstruct(getCurrentImage()));
     showResponseTime();
     showTip("上次操作：骨架重构");
@@ -497,6 +500,7 @@ void MainWindow::on_actionSkeletonReconstruct_triggered()
 
 void MainWindow::on_actionReconstruct_triggered()
 {
+    ui_clear();
     showImage(F_reconstruct(getCurrentImage(), getAnotherImage()));
     showResponseTime();
     showTip("上次操作：形态学重构");
@@ -544,6 +548,11 @@ void MainWindow::ui_clear()
     widgetList.clear();
     ui->gridLayout->update();
     ui->histogramArea->clearLine();
+
+    for (int i = 0; i<25; i++)
+    {
+        inputKernel[i] = 0;
+    }
 }
 
 void MainWindow::ui_change_val1(int val)
@@ -677,6 +686,24 @@ QSlider *MainWindow::ui_mySlider(int minimum, int maximum, int singleStep)
 /************************************************
  * Signal slot function with custom input
  ************************************************/
+void MainWindow::slot_channelSeperation_preview()
+{
+    switch (ui_val1)
+    {
+    case 0:
+        showThumbnail(F_seperation(getCurrentImage(), F_R));
+        break;
+    case 1:
+        showThumbnail(F_seperation(getCurrentImage(), F_G));
+        break;
+    case 2:
+        showThumbnail(F_seperation(getCurrentImage(), F_B));
+        break;
+    default:
+        break;
+    }
+}
+
 void MainWindow::slot_channelSeperation()
 {
     switch (ui_val1)
@@ -699,6 +726,7 @@ void MainWindow::slot_channelSeperation()
 
 void MainWindow::on_actionChannelSeperation_triggered()
 {
+    ui_clear();
     QComboBox *comboBox = new QComboBox;
     comboBox->addItem("红", 0);
     comboBox->addItem("绿", 1);
@@ -708,6 +736,7 @@ void MainWindow::on_actionChannelSeperation_triggered()
     QDialogButtonBox *dialogButtonBox = createButtonBox();
 
     connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_channelSeperation_preview()));
     connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(slot_channelSeperation()));
     connect(dialogButtonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
 

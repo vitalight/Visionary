@@ -53,7 +53,7 @@ void MyPainter::paintEvent(QPaintEvent *event)
         p.setPen(QColor(146, 189, 108));
 
         QPoint *points = (QPoint*)malloc(sizeof(QPoint)*256);
-        int division = 1;
+        double division = 1;
 
         switch(lineType)
         {
@@ -78,7 +78,7 @@ void MyPainter::paintEvent(QPaintEvent *event)
                        PAINTER_POINT(step*255, height-2*PADDING));
             break;
         case PAINTER_EXP:
-            division = pow(255, val1);
+            division = pow(255, val1+1);
             for (int i = 0; i < 256; i++) {
                 points[i] = PAINTER_POINT(step*i, pow(i, val1+1)/division*(height - 2*PADDING));
             }

@@ -81,6 +81,7 @@ private slots:
     void slot_resize();
     void on_actionResize_triggered();
 
+    void slot_channelSeperation_preview();
     void slot_channelSeperation();
     void on_actionChannelSeperation_triggered();
 

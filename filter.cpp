@@ -830,7 +830,8 @@ QImage *F_contrast_exponential(QImage *image, double power)
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
-    int width = image->width(), height = image->height(), r, g, b, division = pow(255, power - 1);
+    int width = image->width(), height = image->height(), r, g, b;
+    long long int division = pow(255, power - 1);
 
     for (int y = 0; y < height; y++)
     {
