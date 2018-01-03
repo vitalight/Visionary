@@ -5,7 +5,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 ## Todo List
 - 总体功能
   - [ ] timming取消，或者放mainwindow
-  - [ ] thinning not working
+  - [ ] 每次都要重置为0 kernel
+  - [ ] 指数变换、log的曲线不太对
   - [x] 右边输入栏（像素值）
   - [x] 实时显示
   - [x] 双图片显示
@@ -24,8 +25,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] 加、减、乘、剪裁 
   - [x] 缩放、旋转 
 - 对比度调节
-  - [ ] 线性及分段线性调整
-  - [ ] 非线性调整：对数、指数（系数可调）
+  - [x] 线性及分段线性调整
+  - [x] 非线性调整：对数、指数（系数可调）
   - [x] 图像的直方图显示 
   - [x] 直方图均衡化 
 - 平滑滤波器（卷积核允许用户自定义）
@@ -38,9 +39,9 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - 霍夫变换（选做）
   - [ ] 检测直线和圆
 - 二值数学形态学（结构元允许用户自定义）
-  - [x] 膨胀、腐蚀 V
-  - [x] 开、闭 V
-  - [x] 细化、粗化 V?
+  - [x] 膨胀、腐蚀 
+  - [x] 开、闭 
+  - [x] 细化、粗化 
   - [x] 距离变换
   - [x] 骨架 X有bug
   - [x] 骨架重构 X

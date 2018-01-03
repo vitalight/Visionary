@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standered.png"
-#define DEFAULT_FUNCTION on_actionDilation_triggered()
+#define DEFAULT_FUNCTION on_actionContrastNonlinear_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -35,8 +35,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 #ifndef __RELEASE__
     on_actionOpen_triggered();
-    on_actionOtsu_triggered();
-    on_actionThining_triggered();
+    on_actionShowHistogram_toggled(true);
     DEFAULT_FUNCTION;
 #endif
 }
@@ -453,6 +452,15 @@ void MainWindow::updateHistogram()
     }
 }
 
+void MainWindow::updateHistogram_thumbnail()
+{
+    if (showHistogram)
+    {
+        ui->histogramArea->histogram = F_getHistogram(&(images[imageIndex].thumbnail));
+        update();
+    }
+}
+
 void MainWindow::on_actionShowHistogram_toggled(bool arg1)
 {
     showHistogram = arg1;
@@ -535,6 +543,7 @@ void MainWindow::ui_clear()
     spinBoxes.clear();
     widgetList.clear();
     ui->gridLayout->update();
+    ui->histogramArea->clearLine();
 }
 
 void MainWindow::ui_change_val1(int val)
@@ -1072,4 +1081,135 @@ void MainWindow::on_actionDistanceTransform_triggered()
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_distance()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
     showTip("正在进行：距离变换");
+}
+
+void MainWindow::slot_contrastLinear_preview()
+{
+    showThumbnail(F_contrast_linear(getCurrentImage(), ui_val1/10.0, ui_val2));
+    updateHistogram_thumbnail();
+    ui->histogramArea->painterLine(ui_val1/10.0, ui_val2);
+}
+
+void MainWindow::slot_contrastLinear()
+{
+    showImage(F_contrast_linear(getCurrentImage(), ui_val1/10.0, ui_val2));
+    showTip("上次操作：线性对比度调节");
+    ui->histogramArea->clearLine();
+    showResponseTime();
+}
+
+void MainWindow::on_actionContrastLinear_triggered()
+{
+    ui_clear();
+
+    ui_val1 = 10;
+    ui_val2 = 0;
+    QSlider *slider1 = ui_mySlider(0, 30, 1),
+            *slider2 = ui_mySlider(-255, 255, 1);
+
+    slider1->setValue(10);
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastLinear_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastLinear_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_contrastLinear()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：线性对比度调节");
+}
+
+void MainWindow::slot_contrastSectionLinear_preview()
+{
+    showThumbnail(F_contrast_section(getCurrentImage(), ui_val1, ui_val2, ui_val3, ui_val4));
+    updateHistogram_thumbnail();
+    ui->histogramArea->painterSection(ui_val1, ui_val2, ui_val3, ui_val4);
+}
+
+void MainWindow::slot_contrastSectionLinear()
+{
+    showImage(F_contrast_section(getCurrentImage(), ui_val1, ui_val2, ui_val3, ui_val4));
+    showTip("上次操作：分段线性调节");
+    showResponseTime();
+    ui->histogramArea->clearLine();
+}
+
+void MainWindow::on_actionContrastSectionLinear_triggered()
+{
+    ui_clear();
+    ui_val1 = 0;
+    ui_val2 = 0;
+    ui_val3 = 255;
+    ui_val4 = 255;
+    QSlider *slider1 = ui_mySlider(0, 255, 1),
+            *slider2 = ui_mySlider(0, 255, 1),
+            *slider3 = ui_mySlider(0, 255, 1),
+            *slider4 = ui_mySlider(0, 255, 1);
+
+    slider1->setValue(0);
+    slider2->setValue(0);
+    slider3->setValue(255);
+    slider4->setValue(255);
+
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastSectionLinear_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastSectionLinear_preview()));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastSectionLinear_preview()));
+    connect(slider4, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val4(int)));
+    connect(slider4, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastSectionLinear_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_contrastSectionLinear()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：分段线性调节");
+}
+
+void MainWindow::slot_contrastNonlinear_preview()
+{
+    if (ui_val2) {
+        showThumbnail(F_contrast_exponential(getCurrentImage(), ui_val1/10.0));
+        ui->histogramArea->painterExp(ui_val1/10.0);
+    } else {
+        showThumbnail(F_contrast_logarithm(getCurrentImage(), ui_val1/10.0));
+        ui->histogramArea->painterLog(ui_val1/10.0);
+    }
+    updateHistogram_thumbnail();
+}
+
+void MainWindow::slot_contrastNonlinear()
+{
+    if (ui_val2) {
+        showImage(F_contrast_exponential(getCurrentImage(), ui_val1/10.0));
+    } else {
+        showImage(F_contrast_logarithm(getCurrentImage(), ui_val1/10.0));
+    }
+    ui->histogramArea->clearLine();
+    showTip("上次操作：非线性调节");
+    showResponseTime();
+}
+
+void MainWindow::on_actionContrastNonlinear_triggered()
+{
+    ui_clear();
+    ui_val1 = 0;
+    ui_val2 = 0;
+
+    QComboBox *comboBox = new QComboBox;
+    comboBox->addItem("对数变换", 0);
+    comboBox->addItem("指数变换", 1);
+    addMyWidget(comboBox);
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));
+
+    QSlider *slider1 = ui_mySlider(0, 50, 1);
+    slider1->setValue(0);
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_contrastNonlinear()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：分段线性调节");
 }

@@ -711,10 +711,143 @@ QImage *F_spin(QImage *image, int angle, F_ScaleAlgo algo)
  * 4. 对比度调节
 ****************************************************************/
 // 线性及分段线性调整
+QImage *F_contrast_linear(QImage *image, double gradient, int intercept)
+{
+    TIMMING_BEGIN;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), r, g, b;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = qBound(0, int(qRed(bits[y*width+x]) * gradient + intercept), 255);
+            g = qBound(0, int(qGreen(bits[y*width+x]) * gradient + intercept), 255);
+            b = qBound(0, int(qBlue(bits[y*width+x]) * gradient + intercept), 255);
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+QImage *F_contrast_section(QImage *image, int pointX1, int pointY1, int pointX2, int pointY2)
+{
+    TIMMING_BEGIN;
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(),
+        r, g, b;
+    double gradient, intercept;
+
+    pointX1 = min(pointX1, pointX2);
+    pointX2 = max(pointX1, pointX2);
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            if (qRed(bits[y*width+x])<pointX1) {
+                gradient = double(pointY1)/pointX1;
+                intercept = 0;
+            } else if (qRed(bits[y*width+x])<pointX2) {
+                gradient = double(pointY2-pointY1)/(pointX2-pointX1);
+                intercept = pointY1 - pointX1 * gradient;
+            } else if (qRed(bits[y*width+x])<256){
+                gradient = double(255-pointY2)/(255-pointX1);
+                intercept = pointY2 - pointX2 * gradient;
+            }
+
+            r = qBound(0, int(qRed(bits[y*width+x]) * gradient + intercept), 255);
+
+            if (qGreen(bits[y*width+x])<pointX1) {
+                gradient = double(pointY1)/pointX1;
+                intercept = 0;
+            } else if (qGreen(bits[y*width+x])<pointX2) {
+                gradient = double(pointY2-pointY1)/(pointX2-pointX1);
+                intercept = pointY1 - pointX1 * gradient;
+            } else if (qGreen(bits[y*width+x])<256){
+                gradient = double(255-pointY2)/(255-pointX1);
+                intercept = pointY2 - pointX2 * gradient;
+            }
+            g = qBound(0, int(qGreen(bits[y*width+x]) * gradient + intercept), 255);
+
+            if (qBlue(bits[y*width+x])<pointX1) {
+                gradient = double(pointY1)/pointX1;
+                intercept = 0;
+            } else if (qBlue(bits[y*width+x])<pointX2) {
+                gradient = double(pointY2-pointY1)/(pointX2-pointX1);
+                intercept = pointY1 - pointX1 * gradient;
+            } else if (qBlue(bits[y*width+x])<256){
+                gradient = double(255-pointY2)/(255-pointX1);
+                intercept = pointY2 - pointX2 * gradient;
+            }
+            b = qBound(0, int(qBlue(bits[y*width+x]) * gradient + intercept), 255);
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
 // 非线性调整：对数、指数（系数可调）
+QImage *F_contrast_logarithm(QImage *image, double factor)
+{
+    TIMMING_BEGIN;
+    factor += 0.1;
+
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), r, g, b;
+    double division = log(256*factor)/256;
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = qBound(0, int(log(1+qRed(bits[y*width+x])*factor)/division), 255);
+            g = qBound(0, int(log(1+qGreen(bits[y*width+x])*factor)/division), 255);
+            b = qBound(0, int(log(1+qBlue(bits[y*width+x])*factor)/division), 255);
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
+
+QImage *F_contrast_exponential(QImage *image, double power)
+{
+    TIMMING_BEGIN;
+    power += 1;
+
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), r, g, b, division = pow(255, power - 1);
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = qBound(0, int(pow(qRed(bits[y*width+x]), power) / division), 255);
+            g = qBound(0, int(pow(qGreen(bits[y*width+x]), power) / division), 255);
+            b = qBound(0, int(pow(qBlue(bits[y*width+x]), power) / division), 255);
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
 
 // 图像的直方图显示
-// [test] none
 vector<double> F_getHistogram(QImage *image)
 {
     vector<double> histogram(256);

@@ -242,6 +242,7 @@ border-color: rgb(0, 0, 0);</string>
     <addaction name="separator"/>
     <addaction name="actionSwitch"/>
     <addaction name="actionCopyToAnother"/>
+    <addaction name="actionShowHistogram"/>
     <addaction name="actionAutoscale"/>
    </widget>
    <widget class="QMenu" name="menuFilter">
@@ -264,7 +265,9 @@ border-color: rgb(0, 0, 0);</string>
      <property name="title">
       <string>对比度调节</string>
      </property>
-     <addaction name="actionShowHistogram"/>
+     <addaction name="actionContrastLinear"/>
+     <addaction name="actionContrastSectionLinear"/>
+     <addaction name="actionContrastNonlinear"/>
      <addaction name="actionEqualizeHistogram"/>
      <addaction name="actionContrastStretch"/>
     </widget>
@@ -650,6 +653,21 @@ border-color: rgb(0, 0, 0);</string>
    </property>
    <property name="text">
     <string>自动缩放</string>
+   </property>
+  </action>
+  <action name="actionContrastLinear">
+   <property name="text">
+    <string>线性调节</string>
+   </property>
+  </action>
+  <action name="actionContrastSectionLinear">
+   <property name="text">
+    <string>线性分段调节</string>
+   </property>
+  </action>
+  <action name="actionContrastNonlinear">
+   <property name="text">
+    <string>非线性调节</string>
    </property>
   </action>
  </widget>

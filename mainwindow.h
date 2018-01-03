@@ -158,6 +158,18 @@ private slots:
 
     void on_actionAutoscale_toggled(bool arg1);
 
+    void slot_contrastLinear_preview();
+    void slot_contrastLinear();
+    void on_actionContrastLinear_triggered();
+
+    void slot_contrastSectionLinear_preview();
+    void slot_contrastSectionLinear();
+    void on_actionContrastSectionLinear_triggered();
+
+    void slot_contrastNonlinear_preview();
+    void slot_contrastNonlinear();
+    void on_actionContrastNonlinear_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -191,6 +203,8 @@ private:
     void showImage(QImage *image);
     QImage autoscale(QImage *image = NULL);
     void showTip(QString str);
+
+    void updateHistogram_thumbnail();
     void updateHistogram();
 protected:
     void mouseMoveEvent(QMouseEvent* event);
