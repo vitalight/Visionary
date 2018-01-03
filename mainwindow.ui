@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1200</width>
-    <height>900</height>
+    <height>860</height>
    </rect>
   </property>
   <property name="mouseTracking">
@@ -33,7 +33,7 @@
     <property name="geometry">
      <rect>
       <x>920</x>
-      <y>850</y>
+      <y>810</y>
       <width>171</width>
       <height>16</height>
      </rect>
@@ -51,7 +51,7 @@
       <x>0</x>
       <y>0</y>
       <width>1200</width>
-      <height>900</height>
+      <height>860</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -69,7 +69,7 @@ color: rgb(255, 255, 255);</string>
     <property name="geometry">
      <rect>
       <x>920</x>
-      <y>790</y>
+      <y>750</y>
       <width>251</width>
       <height>20</height>
      </rect>
@@ -84,8 +84,8 @@ color: rgb(255, 255, 255);</string>
    <widget class="QLabel" name="colorBar">
     <property name="geometry">
      <rect>
-      <x>1070</x>
-      <y>790</y>
+      <x>1090</x>
+      <y>750</y>
       <width>20</width>
       <height>20</height>
      </rect>
@@ -102,7 +102,7 @@ border-color: rgb(255, 255, 255);</string>
     <property name="geometry">
      <rect>
       <x>920</x>
-      <y>820</y>
+      <y>780</y>
       <width>151</width>
       <height>20</height>
      </rect>
@@ -118,8 +118,8 @@ border-color: rgb(255, 255, 255);</string>
     <property name="geometry">
      <rect>
       <x>920</x>
-      <y>750</y>
-      <width>181</width>
+      <y>710</y>
+      <width>241</width>
       <height>28</height>
      </rect>
     </property>
@@ -133,7 +133,7 @@ border-color: rgb(255, 255, 255);</string>
       <x>20</x>
       <y>20</y>
       <width>860</width>
-      <height>830</height>
+      <height>790</height>
      </rect>
     </property>
     <property name="mouseTracking">
@@ -151,7 +151,7 @@ border-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>920</x>
-      <y>720</y>
+      <y>680</y>
       <width>241</width>
       <height>16</height>
      </rect>
@@ -167,7 +167,7 @@ border-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>920</x>
-      <y>470</y>
+      <y>430</y>
       <width>240</width>
       <height>240</height>
      </rect>
@@ -186,9 +186,9 @@ border-color: rgb(0, 0, 0);</string>
     <property name="geometry">
      <rect>
       <x>922</x>
-      <y>20</y>
+      <y>30</y>
       <width>241</width>
-      <height>431</height>
+      <height>371</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout" rowstretch="0">
@@ -199,7 +199,7 @@ border-color: rgb(0, 0, 0);</string>
       <number>6</number>
      </property>
      <property name="verticalSpacing">
-      <number>12</number>
+      <number>10</number>
      </property>
     </layout>
    </widget>

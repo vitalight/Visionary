@@ -28,7 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->responseTime->setVisible(false);
     ui->histogramArea->setVisible(false);           // 默认隐藏直方图
-    ui->gridLayout->setHorizontalSpacing(1);
+    //ui->gridLayout->setVerticalSpacing(1);
 
     // 初始化InputKernel
     for (int i = 0; i < 25; i++)
@@ -511,7 +511,6 @@ void MainWindow::on_actionReconstruct_triggered()
 QDialogButtonBox *MainWindow::createButtonBox()
 {
     QDialogButtonBox *dialogButtonBox = new QDialogButtonBox;
-    dialogButtonBox->setStyleSheet("top:30px");
     addMyWidget(dialogButtonBox);
     dialogButtonBox->addButton("确定", QDialogButtonBox::AcceptRole);
     dialogButtonBox->addButton("取消", QDialogButtonBox::RejectRole);
@@ -550,6 +549,7 @@ void MainWindow::ui_clear()
     widgetList.clear();
     ui->gridLayout->update();
     ui->histogramArea->clearLine();
+    showImage_without_history(getCurrentImage());
 
     for (int i = 0; i<25; i++)
     {
@@ -604,7 +604,7 @@ void MainWindow::ui_input_kernel()
     QComboBox *comboBox = new QComboBox;
     comboBox->addItem("Kernel大小5", 0);
     comboBox->addItem("Kernel大小3", 1);
-    addMyWidget(comboBox);
+    addMyWidget(comboBox, 0, 0, 2, 5);
     connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_spinBox_number(int)));
 
     QSignalMapper *signalMapper = new QSignalMapper(this);
@@ -679,6 +679,8 @@ QSlider *MainWindow::ui_mySlider(int minimum, int maximum, int singleStep, QStri
         label->setText(name);
         addMyWidget(label, ui->gridLayout->rowCount(), 0, 1, 1);
         addMyWidget(spinBox1, ui->gridLayout->rowCount()-1, 1, 1, 3);
+    } else {
+        addMyWidget(spinBox1);
     }
 
     QSlider *slider1 = new QSlider(Qt::Horizontal);
@@ -773,9 +775,9 @@ void MainWindow::on_actionadjustHSB_triggered()
     ui_val1 = 0;
     ui_val2 = 0;
     ui_val3 = 0;
-    QSlider *slider1 = ui_mySlider(-180, 180, 5),
-            *slider2 = ui_mySlider(-100, 100, 5),
-            *slider3 = ui_mySlider(-100, 100, 5);
+    QSlider *slider1 = ui_mySlider(-180, 180, 5, "色相"),
+            *slider2 = ui_mySlider(-100, 100, 5, "饱和度"),
+            *slider3 = ui_mySlider(-100, 100, 5, "亮度");
 
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_adjustHSB_preview()));
@@ -835,8 +837,8 @@ void MainWindow::on_actionDoubleThreshold_triggered()
 
     ui_val1 = 0;
     ui_val2 = 0;
-    QSlider *slider1 = ui_mySlider(0, 255, 1);
-    QSlider *slider2 = ui_mySlider(0, 255, 1);
+    QSlider *slider1 = ui_mySlider(0, 255, 1, "低阈值");
+    QSlider *slider2 = ui_mySlider(0, 255, 1, "高阈值");
 
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_doubleTreshold_preview()));
@@ -869,22 +871,27 @@ void MainWindow::on_actionCut_triggered()
     ui_val3 = getCurrentImage()->width();
     ui_val4 = getCurrentImage()->height();
 
-    QSpinBox *spinBox1 = ui_mySpinBox(1, getCurrentImage()->width(), 1),
-             *spinBox2 = ui_mySpinBox(1, getCurrentImage()->height(), 1),
-             *spinBox3 = ui_mySpinBox(1, getCurrentImage()->width(), getCurrentImage()->width()),
-             *spinBox4 = ui_mySpinBox(1, getCurrentImage()->height(), getCurrentImage()->height());
+    QSlider *slider1 = ui_mySlider(1, getCurrentImage()->width(), 1, "起始点X"),
+             *slider2 = ui_mySlider(1, getCurrentImage()->height(), 1, "起始点Y"),
+             *slider3 = ui_mySlider(1, getCurrentImage()->width(), 1, "宽度"),
+             *slider4 = ui_mySlider(1, getCurrentImage()->height(), 1, "长度");
 
-    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
-    connect(spinBox1, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+    slider1->setValue(0);
+    slider2->setValue(0);
+    slider3->setValue(getCurrentImage()->width());
+    slider4->setValue(getCurrentImage()->height());
 
-    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
-    connect(spinBox2, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
 
-    connect(spinBox3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
-    connect(spinBox3, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
 
-    connect(spinBox4, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val4(int)));
-    connect(spinBox4, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
+
+    connect(slider4, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val4(int)));
+    connect(slider4, SIGNAL(valueChanged(int)), this, SLOT(slot_cut_preview()));
 
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_cut()));
@@ -927,8 +934,8 @@ void MainWindow::on_actionResize_triggered()
     ui_val1 = getCurrentImage()->width();
     ui_val2 = getCurrentImage()->height();
 
-    QSlider *slider1 = ui_mySlider(1, 2000, 1),
-            *slider2 = ui_mySlider(1, 2000, 1);
+    QSlider *slider1 = ui_mySlider(1, 2000, 1, "宽度"),
+            *slider2 = ui_mySlider(1, 2000, 1, "高度");
     slider1->setValue(getCurrentImage()->width());
     slider2->setValue(getCurrentImage()->height());
 
@@ -979,7 +986,7 @@ void MainWindow::on_actionSpinNearest_triggered()
     ui_val1 = 0;
     ui_val2 = 0;
 
-    QSlider *slider1 = ui_mySlider(0, 360, 5);
+    QSlider *slider1 = ui_mySlider(0, 360, 5, "角度");
 
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_spin_preview()));
@@ -1147,8 +1154,8 @@ void MainWindow::on_actionContrastLinear_triggered()
 
     ui_val1 = 10;
     ui_val2 = 0;
-    QSlider *slider1 = ui_mySlider(0, 30, 1),
-            *slider2 = ui_mySlider(-255, 255, 1);
+    QSlider *slider1 = ui_mySlider(0, 30, 1, "斜率"),
+            *slider2 = ui_mySlider(-255, 255, 1, "截距");
 
     slider1->setValue(10);
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
@@ -1185,10 +1192,10 @@ void MainWindow::on_actionContrastSectionLinear_triggered()
     ui_val2 = 0;
     ui_val3 = 255;
     ui_val4 = 255;
-    QSlider *slider1 = ui_mySlider(0, 255, 1),
-            *slider2 = ui_mySlider(0, 255, 1),
-            *slider3 = ui_mySlider(0, 255, 1),
-            *slider4 = ui_mySlider(0, 255, 1);
+    QSlider *slider1 = ui_mySlider(0, 255, 1, "X1坐标"),
+            *slider2 = ui_mySlider(0, 255, 1, "Y1坐标"),
+            *slider3 = ui_mySlider(0, 255, 1, "X2坐标"),
+            *slider4 = ui_mySlider(0, 255, 1, "Y2坐标");
 
     slider1->setValue(0);
     slider2->setValue(0);
@@ -1248,7 +1255,7 @@ void MainWindow::on_actionContrastNonlinear_triggered()
     connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val2(int)));
     connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));
 
-    QSlider *slider1 = ui_mySlider(0, 50, 1);
+    QSlider *slider1 = ui_mySlider(0, 50, 1, "参数");
     slider1->setValue(0);
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));

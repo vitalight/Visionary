@@ -9,6 +9,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - [x] delete 新建
 - [x] 缩放 改slider 初始值似乎不对
 - [x] 坏死了， 估计是>8之后再撤销就不对
+- [x] 界面优化完成
+- [ ] 分水岭算法/霍夫变换
 
 
 
@@ -39,7 +41,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] 三通道分离 
   - [x] 彩色  -->灰度 
   - [x] 色相/饱和度/亮度调节 
-  - [ ] 色阶调整（选做）
+  - [x] 色阶调整（选做）
 - 二值化
   - [x] Otus 
   - [x] 手动调节：双阈值，实时 
