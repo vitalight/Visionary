@@ -9,8 +9,8 @@
 #include <QDebug>
 
 #define __RELEASE__
-#define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standard.png"
-#define DEFAULT_FUNCTION //on_actionBlur_triggered()
+#define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/hough.png"
+#define DEFAULT_FUNCTION on_actionHough_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -1403,4 +1403,28 @@ void MainWindow::on_actionTag_triggered()
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
 
     showTip("正在进行：高斯模糊");
+}
+
+void MainWindow::slot_hough_preview()
+{
+    showThumbnail(F_hough_line(getCurrentImage(), ui_val1));
+}
+
+void MainWindow::slot_hough()
+{
+    showImage(F_hough_line(getCurrentImage(), ui_val1));
+    showTip("上次操作：直线霍夫变换");
+}
+
+void MainWindow::on_actionHough_triggered()
+{
+    ui_val1 = 0;
+    QSlider *slider1 = ui_mySlider(0, 500, 5, "阈值");
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_hough_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_hough()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：直线霍夫变换");
 }

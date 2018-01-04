@@ -1775,6 +1775,8 @@ QImage *F_skeletonReconstruct(QImage *image)
         for (int x = 0; x < width; x++)
         {
             color = qRed(bits[y*width+x]) - 1;
+            if (color>200)
+                return image;
             if (color >= 0) {
                 for (int i = -color; i <= color; i++)
                 {
@@ -1938,7 +1940,7 @@ QImage *F_watershed(QImage *image)
             continue;
         point->label = (int*)malloc(sizeof(int));
         *(point->label) = newLabel++;
-        qDebug()<<"("<<point->x<<","<<point->y<<"):"<<point->intensity<<"color"<<*(point->label);
+        //qDebug()<<"("<<point->x<<","<<point->y<<"):"<<point->intensity<<"color"<<*(point->label);
 
         queue<WatershedPoint *> scanQueue;
         addQueue(scanQueue, point->neighbors);
@@ -1963,7 +1965,7 @@ QImage *F_watershed(QImage *image)
                 }
                 continue;
             }
-            if (head->intensity - point->intensity < F_WATERSHED_TICK) {
+            if (head->intensity - point->intensity < F_WATERSHED_TICK && head->intensity>=point->intensity) {
                 head->label = point->label;
                 addQueue(scanQueue, head->neighbors);
             }
@@ -1978,6 +1980,86 @@ QImage *F_watershed(QImage *image)
             newBits[point->y*width+point->x] = qRgb(255, 0, 0);
         }
     }
+    TIMMING_END;
+    return newImage;
+}
+
+/***************************************************************
+ * 10. 霍夫变换
+****************************************************************/
+#define HOUGH_TEST1
+
+QImage *F_hough_line(QImage *image, int hough_limit)
+{
+    TIMMING_BEGIN;
+    int width = image->width(), height = image->height();
+    double rho_max = sqrt(width*width+height*height), theta_max = PI/2.0;
+    int rho_size = 180, theta_size = 180;
+    double rho_accuracy = rho_max / rho_size,
+           theta_accuracy = theta_max / theta_size;
+
+#ifndef HOUGH_TEST
+    QImage *newImage = new QImage(*image);
+#else
+    QImage *newImage = new QImage(theta_size, rho_size, QImage::Format_ARGB32);
+#endif
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+
+    vector<vector<int>> houghSpace;
+    for (int i=0; i< theta_size; i++) {
+        vector<int> line(rho_size, 0);
+        houghSpace.push_back(line);
+    }
+
+    for (int y = 1; y < height; y++)
+    {
+        for (int x = 1; x < width; x++)
+        {
+            if (qRed(bits[y*width+x]) == 255)
+            {
+                for (int i = 0; i < theta_size; i++) {
+                    int j = U_round((x*cos(i*theta_accuracy)+y*(sin(i*theta_accuracy)))/rho_accuracy);
+                    //qDebug()<<"["<<theta<<","<<rho<<"]";
+                    if (j < rho_size) {
+                        houghSpace[i][j]++;
+                    }
+                }
+            }
+        }
+    }
+
+#ifdef HOUGH_TEST
+    for (int i = 0; i < theta_size; i++) {
+        for (int j = 0; j < rho_size; j++) {
+            int color = qBound(0, houghSpace[i][j], 255);
+            newBits[i*rho_size+j] = qRgb(color, color, color);
+        }
+    }
+#else
+    for (int i = 0; i < theta_size; i++) {
+        for (int j = 0; j < rho_size; j++) {
+            double theta = i * theta_accuracy,
+                   rho = j * rho_accuracy;
+
+            if (houghSpace[i][j] > hough_limit) {
+                if (theta < PI/4) {
+                    for (int y = 0; y < height; y++) {
+                        int x = U_round((rho - y * sin(theta))/cos(theta));
+                        if (U_legal(width, height, x, y) && qRed(bits[y*width+x]))
+                            newBits[y*width+x] = qRgb(255, 0, 0);
+                    }
+                } else {
+                    for (int x = 0; x < width; x++) {
+                        int y = U_round((rho - x * cos(theta))/sin(theta));
+                        if (U_legal(width, height, x, y) && qRed(bits[y*width+x]))
+                            newBits[y*width+x] = qRgb(255, 0, 0);
+                    }
+                }
+            }
+        }
+    }
+#endif
     TIMMING_END;
     return newImage;
 }

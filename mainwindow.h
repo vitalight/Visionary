@@ -183,6 +183,10 @@ private slots:
     void slot_tag_preview();
     void on_actionTag_triggered();
 
+    void slot_hough_preview();
+    void slot_hough();
+    void on_actionHough_triggered();
+
 private:
     Ui::MainWindow *ui;
 

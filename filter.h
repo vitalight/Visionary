@@ -156,4 +156,9 @@ QImage *F_reconstruct(QImage *marker, QImage *mask);
 // 分水岭算法
 QImage *F_watershed(QImage *image);
 
+/***************************************************************
+ * 10. 霍夫变换
+****************************************************************/
+QImage *F_hough_line(QImage *image, int hough_limit);
+
 #endif // PROCESSOR_H
