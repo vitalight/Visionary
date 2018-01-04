@@ -8,9 +8,9 @@
 #include <QInputDialog>
 #include <QDebug>
 
-//#define __RELEASE__
-#define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standered.png"
-#define DEFAULT_FUNCTION on_actionBlur_triggered()
+#define __RELEASE__
+#define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standard.png"
+#define DEFAULT_FUNCTION //on_actionBlur_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -81,6 +81,7 @@ void MainWindow::showThumbnail(QImage *image)
     }
     images[imageIndex].thumbnail = autoscale(image);
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
+    free(image);
 }
 
 void MainWindow::showImage_without_history(QImage *image)
@@ -206,6 +207,28 @@ void MainWindow::mouseMoveEvent(QMouseEvent* event)
     ui->colorBar->setStyleSheet(s);
     s = QString("RGB:(%1,%2,%3)").arg(r).arg(g).arg(b);
     ui->colorText->setText(s);
+}
+
+void MainWindow::on_actionOpenLena_triggered()
+{
+    QString fileName = DEFAULT_FILENAME;
+
+    if (fileName == "" || fileName == NULL) {
+        return;
+    }
+    QImage *image = new QImage;
+    if(!image->load(fileName)) {
+        QMessageBox::information(this, tr("打开图像失败"), tr("打开图像失败"));
+        return;
+    }
+
+    images[imageIndex].originalImage = image;
+
+    // log
+    showImage(image);
+    ui->menuFilter->setEnabled(true);
+    ui->actionRecover->setEnabled(false);
+    showTip("已打开文件");
 }
 
 void MainWindow::on_actionOpen_triggered()
@@ -548,11 +571,6 @@ void MainWindow::ui_clear()
     ui->gridLayout->update();
     ui->histogramArea->clearLine();
     showImage_without_history(getCurrentImage());
-
-    for (int i = 0; i<25; i++)
-    {
-        inputKernel[i] = 0;
-    }
 }
 
 void MainWindow::ui_change_val1(int val)
@@ -598,6 +616,11 @@ void MainWindow::ui_change_spinBox_number(int val)
 
 void MainWindow::ui_input_kernel()
 {
+    for (int i = 0; i<25; i++)
+    {
+        inputKernel[i] = 1;
+    }
+
     ui_val1 = 5;
     QComboBox *comboBox = new QComboBox;
     comboBox->addItem("Kernel大小5", 0);
@@ -611,6 +634,7 @@ void MainWindow::ui_input_kernel()
         for (int j = 0; j < 5; j++)
         {
             QSpinBox *widget = new QSpinBox;
+            widget->setValue(1);
             widget->setMaximum(20);
             widget->setMinimum(-20);
             if (i > 2 || j > 2)
@@ -835,10 +859,11 @@ void MainWindow::on_actionDoubleThreshold_triggered()
     ui_clear();
 
     ui_val1 = 0;
-    ui_val2 = 0;
+    ui_val2 = 255;
     QSlider *slider1 = ui_mySlider(0, 255, 1, "低阈值");
     QSlider *slider2 = ui_mySlider(0, 255, 1, "高阈值");
 
+    slider2->setValue(255);
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_doubleTreshold_preview()));
     connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
@@ -873,7 +898,7 @@ void MainWindow::on_actionCut_triggered()
     QSlider *slider1 = ui_mySlider(1, getCurrentImage()->width(), 1, "起始点X"),
              *slider2 = ui_mySlider(1, getCurrentImage()->height(), 1, "起始点Y"),
              *slider3 = ui_mySlider(1, getCurrentImage()->width(), 1, "宽度"),
-             *slider4 = ui_mySlider(1, getCurrentImage()->height(), 1, "长度");
+             *slider4 = ui_mySlider(1, getCurrentImage()->height(), 1, "高度");
 
     slider1->setValue(0);
     slider2->setValue(0);
@@ -1304,7 +1329,7 @@ void MainWindow::on_actionadjustGradation_triggered()
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_colorGradiation()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
 
-    slot_contrastNonlinear_preview();
+    slot_colorGradiation_preview();
     showTip("正在进行：色阶调节");
 }
 
@@ -1341,6 +1366,41 @@ void MainWindow::on_actionBlur_triggered()
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_blur()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
 
-    slot_contrastNonlinear_preview();
+    slot_blur_preview();
+    showTip("正在进行：高斯模糊");
+}
+
+void MainWindow::on_actionWatershed_triggered()
+{
+    showImage(F_watershed(getCurrentImage()));
+    showTip("上次操作：分水岭算法");
+}
+
+void MainWindow::slot_tag_preview()
+{
+    showThumbnail(F_tag(getCurrentImage(), ui_val1, ui_val2));
+    showTip("正在进行：标记");
+}
+
+void MainWindow::on_actionTag_triggered()
+{
+    ui_clear();
+
+    ui_val1 = 0;
+    ui_val2 = 0;
+
+    QSlider *slider1 = ui_mySlider(0, getCurrentImage()->width()-1, 1, "X坐标"),
+            *slider2 = ui_mySlider(0, getCurrentImage()->height()-1, 1, "Y坐标");
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_tag_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_tag_preview()));
+
+    slider1->setValue(3);
+    slider2->setValue(1);
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+
     showTip("正在进行：高斯模糊");
 }

@@ -42,6 +42,27 @@ QImage *F_example(QImage *image)
     TIMMING_END;
     return newImage;
 }
+
+QImage *F_tag(QImage *image, int x, int y)
+{
+    QImage *newImage = new QImage(*image);
+    int width = image->width(), height = image->height();
+    QRgb *newBits = (QRgb*)newImage->bits();
+    newBits[y*width+x] = qRgb(0, 0, 255);
+    if (U_legal(width, height, x, y-1)) {
+        newBits[y*width+x-width] = qRgb(0, 0, 255);
+    }
+    if (U_legal(width, height, x, y+1)) {
+        newBits[y*width+x+width] = qRgb(0, 0, 255);
+    }
+    if (U_legal(width, height, x-1, y)) {
+        newBits[y*width+x-1] = qRgb(0, 0, 255);
+    }
+    if (U_legal(width, height, x+1, y)) {
+        newBits[y*width+x+1] = qRgb(0, 0, 255);
+    }
+    return newImage;
+}
 /***************************************************************
  * 1. 彩色图像处理
 ****************************************************************/
@@ -213,6 +234,33 @@ QImage *F_adjustHSB(QImage *image, int h_val, int s_val, int b_val)
     return newImage;
 }
 
+// 色阶调整
+QImage *F_colorGradation(QImage *image, int shadow, double midtone, int highlight)
+{
+    TIMMING_BEGIN;
+
+    QImage *newImage = F_NEW_IMAGE(image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), r, g, b;
+
+    double diff = highlight - shadow;
+    double power = std::min(1.0/midtone, 100.0);
+
+    for (int y = 0; y < height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            r = qBound(0, int(255 * pow((qRed(bits[y*width+x]) - shadow)/diff, power)), 255);
+            g = qBound(0, int(255 * pow((qGreen(bits[y*width+x]) - shadow)/diff, power)), 255);
+            b = qBound(0, int(255 * pow((qBlue(bits[y*width+x]) - shadow)/diff, power)), 255);
+            newBits[y*width+x] = qRgb(r, g, b);
+        }
+    }
+
+    TIMMING_END;
+    return newImage;
+}
 /***************************************************************
  * 2. 二值化
 ****************************************************************/
@@ -559,7 +607,6 @@ QImage *F_cut_transparent(QImage *image)
     {
         return image;
     }
-    //qDebug()<<min_x<<", "<<max_x<<", "<<min_y<<", "<<max_y;
     int newWidth = max_x - min_x + 1, newHeight = max_y - min_y + 1;
     QImage *newImage = new QImage(newWidth, newHeight, QImage::Format_ARGB32);
     QRgb *newBits = (QRgb *)newImage->bits();
@@ -577,7 +624,6 @@ QImage *F_cut_transparent(QImage *image)
 }
 
 // 双线性插值旋转
-// [improve] border missing dots
 QImage *F_spin_linear(QImage *image, int angle)
 {
     TIMMING_BEGIN;
@@ -831,7 +877,7 @@ QImage *F_contrast_exponential(QImage *image, double power)
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
     int width = image->width(), height = image->height(), r, g, b;
-    long long int division = pow(255, power - 1);
+    long long int division = pow(255, power-1);
 
     for (int y = 0; y < height; y++)
     {
@@ -945,35 +991,6 @@ QImage *F_equalizeHistogram(QImage *image)
                                   b_table[qBlue(bits[index])]);
         }
     }
-    TIMMING_END;
-    return newImage;
-}
-
-
-// 色阶调整
-QImage *F_colorGradation(QImage *image, int shadow, double midtone, int highlight)
-{
-    TIMMING_BEGIN;
-
-    QImage *newImage = F_NEW_IMAGE(image);
-    QRgb *bits = (QRgb *)image->constBits(),
-         *newBits = (QRgb *)newImage->bits();
-    int width = image->width(), height = image->height(), r, g, b;
-
-    double diff = highlight - shadow;
-    double power = std::min(1.0/midtone, 100.0);
-
-    for (int y = 0; y < height; y++)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            r = qBound(0, int(255 * pow((qRed(bits[y*width+x]) - shadow)/diff, power)), 255);
-            g = qBound(0, int(255 * pow((qGreen(bits[y*width+x]) - shadow)/diff, power)), 255);
-            b = qBound(0, int(255 * pow((qBlue(bits[y*width+x]) - shadow)/diff, power)), 255);
-            newBits[y*width+x] = qRgb(r, g, b);
-        }
-    }
-
     TIMMING_END;
     return newImage;
 }
@@ -1243,7 +1260,6 @@ QImage *F_detectEdge_canny(QImage *image)
                 }
                 break;
             default:
-                qDebug()<<"direction["<<y<<"]["<<x<<"]";
                 Q_ASSERT(0);
             }
         }
@@ -1780,7 +1796,6 @@ QImage *F_skeletonReconstruct(QImage *image)
     return newImage;
 }
 // 二值形态学重构
-// [todo] incorrect
 QImage *F_reconstruct(QImage *marker, QImage *mask)
 {
     TIMMING_BEGIN;
@@ -1829,9 +1844,140 @@ QImage *F_reconstruct(QImage *marker, QImage *mask)
 /***************************************************************
  * 9. 灰度数学形态学
 ****************************************************************/
-// 其余同#8
 // 分水岭算法
+class WatershedPoint {
+public:
+    int x, y, intensity;
+    int *label = NULL;
+    bool isShed = false;
+    vector<WatershedPoint *> neighbors;
+
+    WatershedPoint(int _x, int _y, int _intensity)
+        :x(_x), y(_y), intensity(_intensity)
+    {
+    }
+
+    bool neighborsNotAllShed()
+    {
+        for (WatershedPoint *p:neighbors) {
+            if (!(p->isShed))
+                return true;
+        }
+        return false;
+    }
+};
+
+void addNeighbor(WatershedPoint *p1, WatershedPoint *p2)
+{
+    p1->neighbors.push_back(p2);
+    p2->neighbors.push_back(p1);
+}
+
+void addQueue(queue<WatershedPoint *> &q, vector<WatershedPoint *> &v)
+{
+    for (WatershedPoint *p:v) {
+        q.push(p);
+    }
+}
+
+#define F_WATERSHED_TICK 20
 QImage *F_watershed(QImage *image)
 {
-    return image;
+    TIMMING_BEGIN;
+    QImage *newImage = new QImage(*image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+    int width = image->width(), height = image->height(), newLabel = 1;
+
+    // 1. sort pixel by intensity
+    vector<WatershedPoint *> points;
+    for (int y = 0; y<height; y++)
+    {
+        for (int x = 0; x < width; x++)
+        {
+            points.push_back(new WatershedPoint(x, y, qRed(bits[y*width+x])));
+            if (U_legal(width, height, x-1, y)) {
+                addNeighbor(points[points.size()-1], points[points.size()-2]);
+            }
+            if (U_legal(width, height, x, y-1)) {
+                addNeighbor(points[points.size()-1], points[points.size()-1-width]);
+            }
+            if (U_legal(width, height, x-1, y-1)) {
+                addNeighbor(points[points.size()-1], points[points.size()-2-width]);
+            }
+        }
+    }
+    sort(points.begin(), points.end(), [](const WatershedPoint *p1, const WatershedPoint *p2)
+    {
+       return p1->intensity<p2->intensity;
+    });
+
+    // 2. label
+    int threshold = F_WATERSHED_TICK;
+
+    for (WatershedPoint *point:points)
+    {
+        if (point->intensity >= threshold)
+            threshold = point->intensity + F_WATERSHED_TICK - point->intensity % F_WATERSHED_TICK;
+
+        if (point->label) {
+            //qDebug()<<"\tcolored";
+            continue;
+        }
+
+        for (WatershedPoint *neighbor:point->neighbors)
+        {
+            if (neighbor->label) {
+                point->label = neighbor->label;
+                //qDebug()<<"\tfind neighbor color"<<neighbor->label;
+                break;
+            }
+        }
+
+        if (point->label)
+            continue;
+        point->label = (int*)malloc(sizeof(int));
+        *(point->label) = newLabel++;
+        qDebug()<<"("<<point->x<<","<<point->y<<"):"<<point->intensity<<"color"<<*(point->label);
+
+        queue<WatershedPoint *> scanQueue;
+        addQueue(scanQueue, point->neighbors);
+        bool isMerged = false;
+
+        while (scanQueue.size())
+        {
+            WatershedPoint *head = scanQueue.front();
+            //qDebug()<<scanQueue.size()<<","<<head->x<<head->y;
+            scanQueue.pop();
+            if (head->label) {
+                if (*(head->label) != *(point->label)) {
+                    if (isMerged) {
+                        head->isShed = true;
+                        //qDebug()<<"Shed: "<<"("<<head->x<<","<<head->y<<")";
+                    } else {
+                        //qDebug()<<"\tPoint"<<point->x<<point->y<<head->x<<head->y;
+                        //qDebug()<<"\t\tColor"<<*(point->label)<<"merge with"<<*(head->label);
+                        isMerged = true;
+                        *(point->label) = *(head->label);
+                    }
+                }
+                continue;
+            }
+            if (head->intensity - point->intensity < F_WATERSHED_TICK) {
+                head->label = point->label;
+                addQueue(scanQueue, head->neighbors);
+            }
+        }
+    }
+
+    // 3. color
+    for (WatershedPoint *point:points)
+    {
+        if (point->isShed && point->neighborsNotAllShed())
+        {
+            newBits[point->y*width+point->x] = qRgb(255, 0, 0);
+        }
+    }
+    TIMMING_END;
+    return newImage;
 }

@@ -4,15 +4,22 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 
 
 
+眼球：绿色通道、色阶
+
+
+
 ## Test Record
 
 - [x] delete 新建
 - [x] 缩放 改slider 初始值似乎不对
 - [x] 坏死了， 估计是>8之后再撤销就不对
 - [x] 界面优化完成
+- [x] 双阈值初始值
+- [ ] 灰度图像HSB失败
 - [ ] 分水岭算法/霍夫变换
 - [ ] 眼球图片处理
-- [ ] 形态学重构
+- [x] out of memory
+- [x] 形态学重构
 
 
 
@@ -24,6 +31,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - [x] 细化算法 正确？
 - [x] 骨架算法
 - [x] 骨架重构
+- [ ] watershed error output
 
 
 

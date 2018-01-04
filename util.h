@@ -14,8 +14,8 @@ public:
     int x;
     int y;
 
-    U_Point(int x_, int y_)
-        :x(x_), y(y_)
+    U_Point(int _x, int _y)
+        :x(_x), y(_y)
     {
     }
 };

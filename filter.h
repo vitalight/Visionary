@@ -10,6 +10,7 @@
 #include <time.h>
 #include <vector>
 #include <stack>
+#include <queue>
 
 #include "util.h"
 
@@ -29,6 +30,7 @@ struct F_HSB
 
 double F_responseTime();
 
+QImage *F_tag(QImage *image, int x, int y);
 /***************************************************************
  * 1. 彩色图像处理
 ****************************************************************/
@@ -44,6 +46,7 @@ QRgb F_HSB2RGB(F_HSB hsi);
 QImage *F_adjustHSB(QImage *image, int h_val, int s_val, int b_val);
 
 // 色阶调整(选做)
+QImage *F_colorGradation(QImage *image, int shadow, double midtone, int highlight);
 
 /***************************************************************
  * 2. 二值化
@@ -92,9 +95,6 @@ void F_getHistogram_rgb(QImage *image, std::vector<int> &r_h, std::vector<int> &
 
 // 直方图均衡化
 QImage *F_equalizeHistogram(QImage *image);
-
-// 色阶调整
-QImage *F_colorGradation(QImage *image, int shadow, double midtone, int highlight);
 
 /***************************************************************
  * 5. 平滑滤波器（卷积核允许用户自定义）
@@ -154,5 +154,6 @@ QImage *F_reconstruct(QImage *marker, QImage *mask);
  * 9. 灰度数学形态学
 ****************************************************************/
 // 分水岭算法
+QImage *F_watershed(QImage *image);
 
 #endif // PROCESSOR_H

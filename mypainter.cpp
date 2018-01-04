@@ -20,17 +20,18 @@ void MyPainter::paintEvent(QPaintEvent *event)
     int width = this->geometry().width(),
         height = this->geometry().height(),
         x = PADDING,
-        y = PADDING,
+        y = height - PADDING,
         recWidth = width - 2 * PADDING,
         recHeight = height - 2 * PADDING;
-    double rateMax = *max_element(histogram.begin(), histogram.end()),
+    double rateMax = sqrt(*max_element(histogram.begin(), histogram.end())),
            factor = (height - 3 * PADDING) / rateMax,
            step = (width - 2*PADDING)/256.0;
 
     // draw axis
     p.setBrush(QColor(255, 255, 255));
     p.setPen(QColor(0, 0, 0));
-    p.drawRect(x, y, recWidth, recHeight);
+    //p.drawRect(x, y, recWidth, recHeight);
+    p.drawLine(QPoint(x,y), QPoint(x+recWidth, y));
 
     // draw histogram
     for (int i=0; i<256; i++)
@@ -40,9 +41,9 @@ void MyPainter::paintEvent(QPaintEvent *event)
         p.setPen(color);
 
         x = PAINTER_X(step*i);
-        y = PAINTER_Y(histogram[i] * factor);
+        y = PAINTER_Y(sqrt(histogram[i]) * factor);
         recWidth = step;
-        recHeight = histogram[i] * factor;
+        recHeight = sqrt(histogram[i]) * factor;
 
         p.drawRect(x, y, recWidth, recHeight);
     }

@@ -176,6 +176,13 @@ private slots:
     void slot_colorGradiation();
     void on_actionadjustGradation_triggered();
 
+    void on_actionWatershed_triggered();
+
+    void on_actionOpenLena_triggered();
+
+    void slot_tag_preview();
+    void on_actionTag_triggered();
+
 private:
     Ui::MainWindow *ui;
 
