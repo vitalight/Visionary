@@ -4,7 +4,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 
 
 
-眼球：绿色通道、色阶
+眼球：绿色通道、去色、色阶、线性分段调节、裁剪
 
 
 
@@ -16,23 +16,12 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - [x] 界面优化完成
 - [x] 双阈值初始值
 - [x] 灰度图像HSB失败
-- [ ] 分水岭算法/霍夫变换
+- [x] 分水岭算法/霍夫变换
 - [ ] 眼球图片处理
 - [x] out of memory
 - [x] 形态学重构
-
-
-
-## Bug Repair
-
-- [x] timming取消，或者放mainwindow
-- [x] 每次都要重置为0 kernel
-- [x] 指数变换、log的曲线不太对
-- [x] 细化算法 正确？
-- [x] 骨架算法
-- [x] 骨架重构
-- [ ] watershed error output
-- [ ] canny assert 0
+- [x] 优化free image
+- [x] 形态学重构崩溃
 
 
 
@@ -73,7 +62,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] Sobel、拉普拉斯、canny 
 - 霍夫变换（选做）
   - [x] 检测直线
-  - [ ] 检测圆
+  - [x] 检测圆
 - 二值数学形态学（结构元允许用户自定义）
   - [x] 膨胀、腐蚀 
   - [x] 开、闭 

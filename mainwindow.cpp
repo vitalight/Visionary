@@ -81,8 +81,9 @@ void MainWindow::showThumbnail(QImage *image)
         return;
     }
     images[imageIndex].thumbnail = autoscale(image);
+    qlabel->clear();
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
-    free(image);
+    delete image;
 }
 
 void MainWindow::showImage_without_history(QImage *image)
@@ -96,6 +97,7 @@ void MainWindow::showImage_without_history(QImage *image)
     images[imageIndex].thumbnail = autoscale();
     updateHistogram();
 
+    qlabel->clear();
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
 }
 
@@ -129,7 +131,7 @@ void MainWindow::showImage(QImage *image)
             // function in [filter.h] is allowed to return input image pointer,
             // so (back != historyImage.front()) is required
             if (back != images[imageIndex].originalImage && back != images[imageIndex].historyImages[0])
-                free(back);
+                delete back;
         } else {
             images[imageIndex].historyIndex++;
         }

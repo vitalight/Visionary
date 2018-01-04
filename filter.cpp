@@ -217,7 +217,7 @@ QImage *F_adjustHSB(QImage *image, int h_val, int s_val, int b_val)
         {
             F_HSB hsb = F_RGB2HSB(bits[y*width+x]);
 
-            // do something with fsb;
+            // do something with hsb;
             hsb.h = (int)(hsb.h+h_val+360) % 360;
             hsb.s *= 1.0 + s_val/100.0;
             if (hsb.s>1)
@@ -1335,14 +1335,25 @@ QImage *F_detectEdge_canny(QImage *image)
 
 QImage *F_detectEdge(QImage *image, F_DetectEdgeAlgo algo)
 {
+    QImage *tmp1, *tmp2;
     switch (algo)
     {
     case F_SOBEL:
-        return F_detectEdge_sobel(F_decolor(F_blur_gaussian(image)));
+        tmp1 = F_blur_gaussian(image);
+        tmp2 = F_decolor(tmp1);
+        free(tmp1);
+        tmp1 = F_detectEdge_sobel(tmp2);
+        free(tmp2);
+        return tmp1;
     case F_LAPLACIAN:
         return F_detectEdge_laplacian(image);
     case F_CANNY:
-        return F_detectEdge_canny(F_decolor(F_blur_gaussian(image)));
+        tmp1 = F_blur_gaussian(image);
+        tmp2 = F_decolor(tmp1);
+        free(tmp1);
+        tmp1 = F_detectEdge_canny(tmp2);
+        free(tmp2);
+        return tmp1;
     }
     return image;
 }
@@ -1427,13 +1438,19 @@ QImage *F_erosion(QImage *image, U_Kernel_i kernel)
 // 开操作
 QImage *F_open(QImage *image, U_Kernel_i kernel)
 {
-    return F_dilation(F_erosion(image, kernel), kernel);
+    QImage *tmp1 = F_erosion(image, kernel),
+           *tmp2 = F_dilation(tmp1, kernel);
+    free(tmp1);
+    return tmp2;
 }
 
 // 闭操作
 QImage *F_close(QImage *image, U_Kernel_i kernel)
 {
-    return F_erosion(F_dilation(image, kernel), kernel);
+    QImage *tmp1 = F_dilation(image, kernel),
+           *tmp2 = F_erosion(tmp1, kernel);
+    free(tmp1);
+    return tmp2;
 }
 
 QImage *F_complement(QImage *image)
