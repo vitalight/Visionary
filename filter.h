@@ -160,5 +160,6 @@ QImage *F_watershed(QImage *image);
  * 10. 霍夫变换
 ****************************************************************/
 QImage *F_hough_line(QImage *image, int hough_limit);
+QImage *F_hough_circle(QImage *image, int radius, int hough_limit);
 
 #endif // PROCESSOR_H

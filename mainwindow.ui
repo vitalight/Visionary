@@ -339,6 +339,13 @@ border-color: rgb(0, 0, 0);</string>
      <addaction name="actionOtsu"/>
      <addaction name="actionDoubleThreshold"/>
     </widget>
+    <widget class="QMenu" name="menuHoughTransform">
+     <property name="title">
+      <string>霍夫变换</string>
+     </property>
+     <addaction name="actionHough"/>
+     <addaction name="actionHoughCircle"/>
+    </widget>
     <addaction name="menu"/>
     <addaction name="menuColorImageProcess"/>
     <addaction name="menuAdjustContrast"/>
@@ -346,7 +353,7 @@ border-color: rgb(0, 0, 0);</string>
     <addaction name="menuDetectEdge"/>
     <addaction name="menuOperation"/>
     <addaction name="menuMorphological"/>
-    <addaction name="actionHough"/>
+    <addaction name="menuHoughTransform"/>
     <addaction name="actionTag"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -708,7 +715,12 @@ border-color: rgb(0, 0, 0);</string>
   </action>
   <action name="actionHough">
    <property name="text">
-    <string>霍夫变换</string>
+    <string>直线霍夫变换</string>
+   </property>
+  </action>
+  <action name="actionHoughCircle">
+   <property name="text">
+    <string>圆形霍夫变换</string>
    </property>
   </action>
  </widget>

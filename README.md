@@ -15,7 +15,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - [x] 坏死了， 估计是>8之后再撤销就不对
 - [x] 界面优化完成
 - [x] 双阈值初始值
-- [ ] 灰度图像HSB失败
+- [x] 灰度图像HSB失败
 - [ ] 分水岭算法/霍夫变换
 - [ ] 眼球图片处理
 - [x] out of memory
@@ -32,6 +32,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - [x] 骨架算法
 - [x] 骨架重构
 - [ ] watershed error output
+- [ ] canny assert 0
 
 
 
@@ -71,7 +72,8 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - 边缘检测
   - [x] Sobel、拉普拉斯、canny 
 - 霍夫变换（选做）
-  - [ ] 检测直线和圆
+  - [x] 检测直线
+  - [ ] 检测圆
 - 二值数学形态学（结构元允许用户自定义）
   - [x] 膨胀、腐蚀 
   - [x] 开、闭 
@@ -84,7 +86,7 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
   - [x] 膨胀、腐蚀
   - [x] 开、闭
   - [x] 形态学重构
-  - [ ] 分水岭算法
+  - [x] 分水岭算法
 
 
 

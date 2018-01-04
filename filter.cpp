@@ -325,6 +325,7 @@ QImage *F_binarization_Otsu(QImage *image)
 
     return F_binarization(image, threshold);
 }
+
 // 手动调节：双阈值，实时
 QImage *F_binarization_double(QImage *image, int threshold_low, int threshold_high)
 {
@@ -338,7 +339,7 @@ QImage *F_binarization_double(QImage *image, int threshold_low, int threshold_hi
         for (int j=0; j<newImage->width(); j++) {
             index = i*newImage->width()+j;
             avg = (qRed(bits[index]) + qGreen(bits[index]) + qBlue(bits[index]))/3;
-            value = avg > threshold_low && avg < threshold_high ? 255 : 0;
+            value = avg >= threshold_low && avg <= threshold_high ? 255 : 0;
             newBits[index] = qRgb(value, value, value);
         }
     }
@@ -1189,10 +1190,10 @@ QImage *F_detectEdge_canny(QImage *image)
     /********************************************
      * sobel algorithm
      ********************************************/
-    for (int x = 0; x < width; x++) {
+    for (int y = 0; y < height; y++) {
         vector<int> line;
 
-        for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
             sum_x = 0;
             sum_y = 0;
 
@@ -1987,8 +1988,6 @@ QImage *F_watershed(QImage *image)
 /***************************************************************
  * 10. 霍夫变换
 ****************************************************************/
-#define HOUGH_TEST1
-
 QImage *F_hough_line(QImage *image, int hough_limit)
 {
     TIMMING_BEGIN;
@@ -2046,13 +2045,13 @@ QImage *F_hough_line(QImage *image, int hough_limit)
                 if (theta < PI/4) {
                     for (int y = 0; y < height; y++) {
                         int x = U_round((rho - y * sin(theta))/cos(theta));
-                        if (U_legal(width, height, x, y) && qRed(bits[y*width+x]))
+                        if (U_legal(width, height, x, y))// && qRed(bits[y*width+x]))
                             newBits[y*width+x] = qRgb(255, 0, 0);
                     }
                 } else {
                     for (int x = 0; x < width; x++) {
                         int y = U_round((rho - x * cos(theta))/sin(theta));
-                        if (U_legal(width, height, x, y) && qRed(bits[y*width+x]))
+                        if (U_legal(width, height, x, y))// && qRed(bits[y*width+x]))
                             newBits[y*width+x] = qRgb(255, 0, 0);
                     }
                 }
@@ -2060,6 +2059,72 @@ QImage *F_hough_line(QImage *image, int hough_limit)
         }
     }
 #endif
+    TIMMING_END;
+    return newImage;
+}
+
+QImage *F_hough_circle(QImage *image, int radius, int hough_limit)
+{
+    //qDebug()<<"F_hough_circle"<<radius<<hough_limit;
+    TIMMING_BEGIN;
+    int width = image->width(), height = image->height();
+    int x_max = 360, y_max = 360;
+
+    QImage *newImage = new QImage(*image);
+    QRgb *bits = (QRgb *)image->constBits(),
+         *newBits = (QRgb *)newImage->bits();
+
+    vector<vector<int>> houghSpace;
+    for (int i=0; i< y_max; i++) {
+        vector<int> line(x_max, 0);
+        houghSpace.push_back(line);
+    }
+
+    for (int y = 1; y < height; y++)
+    {
+        for (int x = 1; x < width; x++)
+        {
+            if (qRed(bits[y*width+x]) == 255)
+            {
+                for (int x0 = 0; x0 < x; x0++) {
+                    int tmp = sqrt(pow(radius,2) - pow(x-x0, 2));
+                    if (y+tmp < y_max) {
+                        houghSpace[y+tmp][x0]++;
+                    }
+
+                    if (y-tmp>0) {
+                        houghSpace[y-tmp][x0]++;
+                    }
+                }
+            }
+        }
+    }
+
+    for (int y0 = 0; y0 < y_max; y0++) {
+        for (int x0 = 0; x0 < x_max; x0++) {
+            if (houghSpace[y0][x0] > hough_limit) {
+                for (int x = x0-radius; x < x0+radius; x++) {
+                    int tmp = sqrt(pow(radius, 2) - pow(x - x0, 2));
+                    if (U_legal(width, height, x, y0+tmp)) {// && qRed(bits[(y0+tmp)*width+x])) {
+                        newBits[(y0+tmp)*width+x] = qRgb(255, 0, 0);
+                    }
+                    if (U_legal(width, height, x, y0-tmp)) {// && qRed(bits[(y0-tmp)*width+x])) {
+                        newBits[(y0-tmp)*width+x] = qRgb(255, 0, 0);
+                    }
+                }
+
+                for (int y = y0-radius/2; y < y0+radius/2; y++) {
+                    int tmp = sqrt(pow(radius, 2) - pow(y - y0, 2));
+                    if (U_legal(width, height, x0 + tmp, y)) {// && qRed(bits[y*width+x0+tmp]))
+                        newBits[y*width+x0 + tmp] = qRgb(255, 0, 0);
+                    }
+                    if (U_legal(width, height, x0 - tmp, y)) {// && qRed(bits[y*width+x0-tmp]))
+                        newBits[y*width+x0 - tmp] = qRgb(255, 0, 0);
+                    }
+                }
+            }
+        }
+    }
     TIMMING_END;
     return newImage;
 }

@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qlabel->setAlignment(Qt::AlignCenter);
     qlabel->setMouseTracking(true);                 // 鼠标跟踪
 
+    ui->menuFilter->setEnabled(false);
     ui->responseTime->setVisible(false);
     ui->histogramArea->setVisible(false);           // 默认隐藏直方图
     //ui->gridLayout->setVerticalSpacing(1);
@@ -1418,13 +1419,43 @@ void MainWindow::slot_hough()
 
 void MainWindow::on_actionHough_triggered()
 {
+    ui_clear();
     ui_val1 = 0;
-    QSlider *slider1 = ui_mySlider(0, 500, 5, "阈值");
+    QSlider *slider1 = ui_mySlider(0, 1000, 5, "阈值");
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_hough_preview()));
 
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_hough()));
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
+    showTip("正在进行：直线霍夫变换");
+}
+
+void MainWindow::slot_houghCircle_preview()
+{
+    showThumbnail(F_hough_circle(getCurrentImage(), ui_val1, ui_val2));
+}
+
+void MainWindow::slot_houghCircle()
+{
+    showImage(F_hough_circle(getCurrentImage(), ui_val1, ui_val2));
+    showTip("上次操作：圆形霍夫变换");
+}
+
+void MainWindow::on_actionHoughCircle_triggered()
+{
+    ui_clear();
+    ui_val1 = 0;
+    ui_val2 = 5;
+    QSlider *slider1 = ui_mySlider(5, 500, 5, "半径"),
+            *slider2 = ui_mySlider(0, 500, 1, "阈值");;
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
+    connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_houghCircle_preview()));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_houghCircle_preview()));
+
+    QDialogButtonBox *buttonBox = createButtonBox();
+    connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_houghCircle()));
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
     showTip("正在进行：直线霍夫变换");
 }

@@ -187,6 +187,10 @@ private slots:
     void slot_hough();
     void on_actionHough_triggered();
 
+    void slot_houghCircle_preview();
+    void slot_houghCircle();
+    void on_actionHoughCircle_triggered();
+
 private:
     Ui::MainWindow *ui;
 
