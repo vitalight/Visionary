@@ -628,7 +628,7 @@ QImage *F_cut_transparent(QImage *image)
 QImage *F_spin_linear(QImage *image, int angle)
 {
     TIMMING_BEGIN;
-    double theta = angle/180.0*PI;
+    double theta = (angle%360)/180.0*PI;
     int width = image->width(), height = image->height(),
         newWidth = ceil(abs(width*cos(theta)) + abs(height*sin(theta))),
         newHeight = ceil(abs(height*cos(theta)) + abs(width*sin(theta))),

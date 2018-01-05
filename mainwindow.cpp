@@ -1012,7 +1012,7 @@ void MainWindow::on_actionSpinNearest_triggered()
     ui_val1 = 0;
     ui_val2 = 0;
 
-    QSlider *slider1 = ui_mySlider(0, 360, 5, "角度");
+    QSlider *slider1 = ui_mySlider(0, 360, 1, "角度");
 
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_spin_preview()));
