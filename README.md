@@ -18,6 +18,12 @@ This is the SJTU Computer Vision final homework, a Photoshop-like software named
 - [x] 灰度图像HSB失败
 - [x] 分水岭算法/霍夫变换
 - [ ] 眼球图片处理
+- [x] 乘法优化
+- [ ] 双线性插值旋转crash
+- [ ] 细化、粗化怎么用？
+- [ ] sobel边缘检测卡死
+- [x] 照着ppt改对比度3参数
+- [x] 分数显示
 - [x] out of memory
 - [x] 形态学重构
 - [x] 优化free image

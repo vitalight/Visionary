@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #define __RELEASE__
-#define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/hough.png"
+#define DEFAULT_FILENAME "F:/MyCodes/Visionary/images/standard.png"
 #define DEFAULT_FUNCTION on_actionHough_triggered()
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -81,7 +81,7 @@ void MainWindow::showThumbnail(QImage *image)
         return;
     }
     images[imageIndex].thumbnail = autoscale(image);
-    qlabel->clear();
+    //qlabel->clear();
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
     delete image;
 }
@@ -97,16 +97,12 @@ void MainWindow::showImage_without_history(QImage *image)
     images[imageIndex].thumbnail = autoscale();
     updateHistogram();
 
-    qlabel->clear();
+    //qlabel->clear();
     qlabel->setPixmap(QPixmap::fromImage(images[imageIndex].thumbnail));
 }
 
 void MainWindow::showImage(QImage *image)
 {
-//    if (image->width() != getCurrentImage()->width() ||
-//            image->height() != getCurrentImage()->height()) {
-//        qlabel->resize(image->width(), image->height());
-//    }
     if (getCurrentImage() == image)
     {
         return;
@@ -119,6 +115,8 @@ void MainWindow::showImage(QImage *image)
 
     if ((int)images[imageIndex].historyImages.size() > images[imageIndex].historyIndex + 1) {
         images[imageIndex].historyImages[++images[imageIndex].historyIndex] = image;
+        for (int i = images[imageIndex].historyIndex+1; i<images[imageIndex].historyImages.size(); i++)
+            delete images[imageIndex].historyImages[i];
         images[imageIndex].historyImages.erase(images[imageIndex].historyImages.begin()+images[imageIndex].historyIndex+1, images[imageIndex].historyImages.end());
         ui->actionRedo->setEnabled(false);
     } else {
@@ -143,6 +141,7 @@ void MainWindow::showImage(QImage *image)
     updateHistogram();
     ui->actionRecover->setEnabled(true);
     ui->actionRedo->setEnabled(false);
+    ui->actionSave_as->setEnabled(true);
 }
 
 QImage MainWindow::autoscale(QImage *image)
@@ -231,6 +230,7 @@ void MainWindow::on_actionOpenLena_triggered()
     showImage(image);
     ui->menuFilter->setEnabled(true);
     ui->actionRecover->setEnabled(false);
+    ui->actionSave_as->setEnabled(true);
     showTip("已打开文件");
 }
 
@@ -343,7 +343,7 @@ void MainWindow::on_actionSave_as_triggered()
 void MainWindow::on_actionAbout_triggered()
 {
     QMessageBox::about(this, "关于Visionary",
-                       "Visionary是一个强大的图像处理软件。");
+                       "一个无所不能的图像处理软件。作者：Vital");
 }
 
 /************************************************
@@ -547,7 +547,6 @@ QDialogButtonBox *MainWindow::createButtonBox()
 void MainWindow::addMyWidget(QWidget *widget)
 {
     widgetList.push_back(widget);
-//    ui->gridLayout->addWidget(widget, widgetList.size()-1, 0, 2, -1);
     ui->gridLayout->addWidget(widget, ui->gridLayout->rowCount(), 0, 2, -1);
 }
 
@@ -1181,7 +1180,7 @@ void MainWindow::on_actionContrastLinear_triggered()
 
     ui_val1 = 10;
     ui_val2 = 0;
-    QSlider *slider1 = ui_mySlider(0, 30, 1, "斜率"),
+    QSlider *slider1 = ui_mySlider(0, 30, 1, "斜率(0.1)"),
             *slider2 = ui_mySlider(-255, 255, 1, "截距");
 
     slider1->setValue(10);
@@ -1247,22 +1246,22 @@ void MainWindow::on_actionContrastSectionLinear_triggered()
 
 void MainWindow::slot_contrastNonlinear_preview()
 {
-    if (ui_val2) {
-        showThumbnail(F_contrast_exponential(getCurrentImage(), ui_val1/10.0));
-        ui->histogramArea->painterExp(ui_val1/10.0);
+    if (ui_val4) {
+        showThumbnail(F_contrast_exponential(getCurrentImage(), ui_val1, 1 + ui_val2/100.0, ui_val3));
+        ui->histogramArea->painterExp(ui_val1, 1 + ui_val2/100.0, ui_val3);
     } else {
-        showThumbnail(F_contrast_logarithm(getCurrentImage(), ui_val1/10.0));
-        ui->histogramArea->painterLog(ui_val1/10.0);
+        showThumbnail(F_contrast_logarithm(getCurrentImage(), ui_val1, ui_val2/100.0, ui_val3/10.0));
+        ui->histogramArea->painterLog(ui_val1, ui_val2/100.0, ui_val3/10.0);
     }
     updateHistogram_thumbnail();
 }
 
 void MainWindow::slot_contrastNonlinear()
 {
-    if (ui_val2) {
-        showImage(F_contrast_exponential(getCurrentImage(), ui_val1/10.0));
+    if (ui_val4) {
+        showImage(F_contrast_exponential(getCurrentImage(), ui_val1, 1 + ui_val2/100.0, ui_val3));
     } else {
-        showImage(F_contrast_logarithm(getCurrentImage(), ui_val1/10.0));
+        showImage(F_contrast_logarithm(getCurrentImage(), ui_val1, ui_val2/100.0, ui_val3/10.0));
     }
     ui->histogramArea->clearLine();
     showTip("上次操作：非线性调节");
@@ -1273,19 +1272,31 @@ void MainWindow::on_actionContrastNonlinear_triggered()
 {
     ui_clear();
     ui_val1 = 0;
-    ui_val2 = 0;
+    ui_val2 = 1;
+    ui_val3 = 11;
+    ui_val4 = 0;
 
     QComboBox *comboBox = new QComboBox;
     comboBox->addItem("对数变换", 0);
     comboBox->addItem("指数变换", 1);
     addMyWidget(comboBox);
-    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(ui_change_val4(int)));
     connect(comboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));
 
-    QSlider *slider1 = ui_mySlider(0, 50, 1, "参数");
+    QSlider *slider1 = ui_mySlider(0, 255, 1, "参数a");
     slider1->setValue(0);
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));
+
+    QSlider *slider2 = ui_mySlider(1, 50, 1, "参数b");
+    slider2->setValue(2);
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
+    connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));
+
+    QSlider *slider3 = ui_mySlider(11, 50, 1, "参数c");
+    slider3->setValue(31);
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val3(int)));
+    connect(slider3, SIGNAL(valueChanged(int)), this, SLOT(slot_contrastNonlinear_preview()));
 
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(slot_contrastNonlinear()));
@@ -1315,7 +1326,7 @@ void MainWindow::on_actionadjustGradation_triggered()
     ui_val3 = 255;
 
     QSlider *slider1 = ui_mySlider(0, 253, 1, "阴影"),
-            *slider2 = ui_mySlider(1, 1000, 1, "中间调"),
+            *slider2 = ui_mySlider(1, 1000, 1, "中间调(0.01)"),
             *slider3 = ui_mySlider(2, 255, 1, "高光");
     slider1->setValue(0);
     slider2->setValue(100);
@@ -1356,7 +1367,7 @@ void MainWindow::on_actionBlur_triggered()
     ui_val2 = 1;
 
     QSlider *slider1 = ui_mySlider(1, 11, 2, "模糊半径"),
-            *slider2 = ui_mySlider(1, 30, 1, "模糊强度");
+            *slider2 = ui_mySlider(1, 30, 1, "模糊强度(0.1)");
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val1(int)));
     connect(slider1, SIGNAL(valueChanged(int)), this, SLOT(slot_blur_preview()));
     connect(slider2, SIGNAL(valueChanged(int)), this, SLOT(ui_change_val2(int)));
@@ -1405,7 +1416,7 @@ void MainWindow::on_actionTag_triggered()
     QDialogButtonBox *buttonBox = createButtonBox();
     connect(buttonBox, SIGNAL(accepted()), this, SLOT(ui_clear()));
 
-    showTip("正在进行：高斯模糊");
+    showTip("正在进行：标记");
 }
 
 void MainWindow::slot_hough_preview()

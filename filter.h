@@ -86,8 +86,8 @@ QImage *F_spin(QImage *image, int angle, F_ScaleAlgo algo);
 QImage *F_contrast_linear(QImage *image, double gradient, int intercept);
 QImage *F_contrast_section(QImage *image, int pointX1, int pointY1, int pointX2, int pointY2);
 // 非线性调整：对数、指数（系数可调）
-QImage *F_contrast_logarithm(QImage *image, double factor);
-QImage *F_contrast_exponential(QImage *image, double power);
+QImage *F_contrast_logarithm(QImage *image, double arga, double argb, double argc);
+QImage *F_contrast_exponential(QImage *image, double arga, double argb, double argc);
 
 // 图像的直方图显示
 std::vector<double> F_getHistogram(QImage *image);

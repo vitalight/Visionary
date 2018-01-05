@@ -440,11 +440,11 @@ QImage *F_times(QImage *image1, QImage *image2)
         for (int x = 0; x < width; x++)
         {
             r = (U_legal(width1, height1, x, y) ? qRed(bits1[y*width1+x]) : 0) *
-                   (U_legal(width2, height2, x, y) ? qRed(bits2[y*width2+x]) : 0);
+                   (U_legal(width2, height2, x, y) ? qRed(bits2[y*width2+x])/255.0 : 0);
             g = (U_legal(width1, height1, x, y) ? qGreen(bits1[y*width1+x]) : 0) *
-                   (U_legal(width2, height2, x, y) ? qGreen(bits2[y*width2+x]) : 0);
+                   (U_legal(width2, height2, x, y) ? qGreen(bits2[y*width2+x])/255.0 : 0);
             b = (U_legal(width1, height1, x, y) ? qBlue(bits1[y*width1+x]) : 0) *
-                   (U_legal(width2, height2, x, y) ? qBlue(bits2[y*width2+x]) : 0);
+                   (U_legal(width2, height2, x, y) ? qBlue(bits2[y*width2+x])/255.0 : 0);
 
             U_colorBound(r, g, b);
 
@@ -842,25 +842,24 @@ QImage *F_contrast_section(QImage *image, int pointX1, int pointY1, int pointX2,
     return newImage;
 }
 
+#define F_LOG(val, a, b, c) (((a)+log((val)+1)/((b)*log(c))))
+
 // 非线性调整：对数、指数（系数可调）
-QImage *F_contrast_logarithm(QImage *image, double factor)
+QImage *F_contrast_logarithm(QImage *image, double arga, double argb, double argc)
 {
     TIMMING_BEGIN;
-    factor += 0.1;
 
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
     int width = image->width(), height = image->height(), r, g, b;
-    double division = log(256*factor)/256;
-
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
-            r = qBound(0, int(log(1+qRed(bits[y*width+x])*factor)/division), 255);
-            g = qBound(0, int(log(1+qGreen(bits[y*width+x])*factor)/division), 255);
-            b = qBound(0, int(log(1+qBlue(bits[y*width+x])*factor)/division), 255);
+            r = qBound(0, int(F_LOG(qRed(bits[y*width+x]), arga, argb, argc)), 255);
+            g = qBound(0, int(F_LOG(qGreen(bits[y*width+x]), arga, argb, argc)), 255);
+            b = qBound(0, int(F_LOG(qBlue(bits[y*width+x]), arga, argb, argc)), 255);
             newBits[y*width+x] = qRgb(r, g, b);
         }
     }
@@ -869,24 +868,23 @@ QImage *F_contrast_logarithm(QImage *image, double factor)
     return newImage;
 }
 
-QImage *F_contrast_exponential(QImage *image, double power)
+#define F_EXP(val, a, b, c) (pow((b), (c)*((val)-(a))/255.0) - 1)
+QImage *F_contrast_exponential(QImage *image, double arga, double argb, double argc)
 {
     TIMMING_BEGIN;
-    power += 1;
 
     QImage *newImage = F_NEW_IMAGE(image);
     QRgb *bits = (QRgb *)image->constBits(),
          *newBits = (QRgb *)newImage->bits();
     int width = image->width(), height = image->height(), r, g, b;
-    long long int division = pow(255, power-1);
 
     for (int y = 0; y < height; y++)
     {
         for (int x = 0; x < width; x++)
         {
-            r = qBound(0, int(pow(qRed(bits[y*width+x]), power) / division), 255);
-            g = qBound(0, int(pow(qGreen(bits[y*width+x]), power) / division), 255);
-            b = qBound(0, int(pow(qBlue(bits[y*width+x]), power) / division), 255);
+            r = qBound(0, int(F_EXP(qRed(bits[y*width+x]), arga, argb, argc)), 255);
+            g = qBound(0, int(F_EXP(qGreen(bits[y*width+x]), arga, argb, argc)), 255);
+            b = qBound(0, int(F_EXP(qBlue(bits[y*width+x]), arga, argb, argc)), 255);
             newBits[y*width+x] = qRgb(r, g, b);
         }
     }

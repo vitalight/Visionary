@@ -23,8 +23,8 @@ public:
 
     void painterLine(double gradient, int intercept);
     void painterSection(int pointX1, int pointY1, int pointX2, int pointY2);
-    void painterLog(double factor);
-    void painterExp(double power);
+    void painterLog(double arga, double argb, double argc);
+    void painterExp(double arga, double argb, double argc);
     void clearLine();
 };
 

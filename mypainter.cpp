@@ -11,6 +11,9 @@ MyPainter::MyPainter(QWidget *parent)
 {
 }
 
+#define F_LOG(val, a, b, c) (((a)+log((val)+1)/((b)*log(c))))
+#define F_EXP(val, a, b, c) (pow((b), (c)*((val)-(a))/255.0) - 1)
+
 void MyPainter::paintEvent(QPaintEvent *event)
 {
     if (!histogram.size())
@@ -54,7 +57,7 @@ void MyPainter::paintEvent(QPaintEvent *event)
         p.setPen(QColor(146, 189, 108));
 
         QPoint *points = (QPoint*)malloc(sizeof(QPoint)*256);
-        double division = 1;
+        double division = 255.0/(height-2*PADDING);
 
         switch(lineType)
         {
@@ -79,16 +82,15 @@ void MyPainter::paintEvent(QPaintEvent *event)
                        PAINTER_POINT(step*255, height-2*PADDING));
             break;
         case PAINTER_EXP:
-            division = pow(255, val1+1);
             for (int i = 0; i < 256; i++) {
-                points[i] = PAINTER_POINT(step*i, pow(i, val1+1)/division*(height - 2*PADDING));
+                points[i] = PAINTER_POINT(step*i, F_EXP(i, val1, val2, val3)/division);
             }
             p.drawPolyline(points, 256);
             break;
         case PAINTER_LOG:
-            division = log(256*(val1+0.1));
             for (int i = 0; i < 256; i++) {
-                points[i] = PAINTER_POINT(step*i, log((1+i)*(val1+0.1))/division*(height - 2*PADDING));
+                double h = F_LOG(i, val1, val2, val3)/division;
+                points[i] = PAINTER_POINT(step*i, h>0?h:0);
             }
             p.drawPolyline(points, 256);
             break;
@@ -113,16 +115,20 @@ void MyPainter::painterSection(int pointX1, int pointY1, int pointX2, int pointY
     val4 = pointY2;
 }
 
-void MyPainter::painterLog(double factor)
+void MyPainter::painterLog(double arga, double argb, double argc)
 {
     lineType = PAINTER_LOG;
-    val1 = factor;
+    val1 = arga;
+    val2 = argb;
+    val3 = argc;
 }
 
-void MyPainter::painterExp(double power)
+void MyPainter::painterExp(double arga, double argb, double argc)
 {
     lineType = PAINTER_EXP;
-    val1 = power;
+    val1 = arga;
+    val2 = argb;
+    val3 = argc;
 }
 
 void MyPainter::clearLine()
