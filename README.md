@@ -10,7 +10,7 @@
 * Hough transform
 * Mathematical Morphology
 
-<img src="/md/Visionary/main.jpg" />
+<img src="documents/main.jpg" />
 
 ## Download
 
